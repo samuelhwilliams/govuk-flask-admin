@@ -1,0 +1,15 @@
+[project]
+name = "govuk-flask-admin"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "flask-admin>=2.0.0a0",
+    "flask>=3",
+    "govuk-frontend-wtf>=3.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
