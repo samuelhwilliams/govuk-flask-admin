@@ -1,16 +1,18 @@
 {% extends 'govuk_frontend_jinja/template.html' %}
+{% from 'govuk_frontend_jinja/components/service-navigation/macro.html' import govukServiceNavigation %}
 
-{# TODO: These assets should be configured/loaded from the flask app, not a CDN #}
+{% set containerClasses = 'app-width-container--wide' %}
+{% set assetPath = url_for('govuk_flask_admin.static', filename='assets').rstrip('/') %}
 
 {% block head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/govuk-frontend@5.6.0/dist/govuk/govuk-frontend.min.css" integrity="sha256-5qLSnvGxMlRAUJSGFJhdq31y4iMAi5Sa6Chwsn6CNco=" crossorigin="anonymous">
+{{ govuk_flask_admin_assets_tags() | safe }}
 {% endblock head %}
 
+{% block header %}
+  {{ govukHeader({"serviceName": "Flask Admin", "classes": "govuk-header--full-width-border"}) }}
+{% endblock %}
+
 {% block bodyEnd %}
-  <script type="module">
-      import { initAll } from 'https://cdn.jsdelivr.net/npm/govuk-frontend@5.6.0/+esm'
-      initAll()
-  </script>
   {% if admin_view.extra_js %}
       {% for js_url in admin_view.extra_js %}
           <script {{ admin_csp_nonce_attribute }} src="{{ js_url }}" type="text/javascript"></script>
