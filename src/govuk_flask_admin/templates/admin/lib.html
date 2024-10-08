@@ -130,10 +130,8 @@
 {% endmacro %}
 
 {% macro form_tag(form=None, action=None) %}
-    <form action="{{ action or '' }}" method="POST" role="form" class="admin-form" enctype="multipart/form-data">
-    <fieldset>
-      {{ caller() }}
-    </fieldset>
+    <form action="{{ action or '' }}" method="POST" role="form" enctype="multipart/form-data">
+    {{ caller() }}
     </form>
 {% endmacro %}
 
