@@ -159,7 +159,7 @@ class GovukModelView(ModelView):
         mapper = self.model._sa_class_manager.mapper
 
         for attr in mapper.attrs:
-            if is_relationship(attr):
+            if is_relationship(attr) or getattr(attr, '_is_relationship'):
                 continue
 
             column_name = attr.key
