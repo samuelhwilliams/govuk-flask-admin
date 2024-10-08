@@ -16,4 +16,3 @@
 - Form actions
 - fix pagination
 - sorting columns
-- add --numeric classes if model fields are numeric

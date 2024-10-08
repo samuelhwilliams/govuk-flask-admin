@@ -97,63 +97,6 @@
 </ul>
 {%- endmacro %}
 
-{# ---------------------- Forms -------------------------- #}
-{% macro render_field(form, field, kwargs={}, caller=None) %}
-  {% set direct_error = h.is_field_error(field.errors) %}
-  {% set prepend = kwargs.pop('prepend', None) %}
-  {% set append = kwargs.pop('append', None) %}
-  <div class="form-group {{ kwargs.get('column_class', '') }}">
-    <label for="{{ field.id }}" class="control-label {% if field.widget.input_type == 'checkbox' %}d-block mb-0{% endif %}">{{ field.label.text }}
-        {% if h.is_required_form_field(field) %}
-          <strong class="text-danger"">&#42;</strong>
-        {%- else -%}
-          &nbsp;
-        {%- endif %}
-    </label>
-    {% if prepend or append %}
-    <div class="input-group">
-      {%- if prepend -%}
-      <div class="input-group-prepend">
-        {{ prepend }}
-      </div>
-      {%- endif -%}
-    {% endif %}
-      {% if field.widget.input_type == 'checkbox' %}
-        {% set _class = kwargs.setdefault('class', '') %}
-      {% elif field.widget.input_type == 'file' %}
-        {% set _class = kwargs.setdefault('class', 'form-control-file') %}
-      {% else %}
-        {% set _class = kwargs.setdefault('class', 'form-control') %}
-      {% endif %}
-      {%- if direct_error %} {% set _ = kwargs.update({'class': kwargs['class'] ~ ' is-invalid'}) %} {% endif -%}
-      {{ field(**kwargs) | safe }}
-      {%- if append -%}
-      <div class="input-group-append">
-        {{ append }}
-      </div>
-      {%- endif -%}
-      {% if direct_error %}
-        <div class="invalid-feedback">
-          <ul class="form-text text-muted {% if field.widget.input_type == 'checkbox' %}mt-0{% endif %}">
-          {% for e in field.errors if e is string %}
-            <li>{{ e }}</li>
-          {% endfor %}
-          </ul>
-        </div>
-      {% elif field.description %}
-        <small class="form-text text-muted {% if field.widget.input_type == 'checkbox' %}mt-0{% endif %}">
-            {{ field.description|safe }}
-        </small>
-      {% endif %}
-    {% if prepend or append %}
-    </div>
-    {% endif %}
-    {% if caller %}
-      {{ caller(form, field, direct_error, kwargs) }}
-    {% endif %}
-  </div>
-{% endmacro %}
-
 {% macro render_header(form, text) %}
     <h3>{{ text }}</h3>
 {% endmacro %}
@@ -181,7 +124,7 @@
           {% else %}
             {% set kwargs = {} %}
           {% endif %}
-          {{ render_field(form, f, kwargs) }}
+          {{ f(**kwargs) | safe }}
         {% endfor %}
     {% endif %}
 {% endmacro %}
@@ -195,14 +138,11 @@
 {% endmacro %}
 
 {% macro render_form_buttons(cancel_url, is_modal=False) %}
-  <hr>
-  <div class="form-group">
-    <div class="col-md-offset-2 col-md-10 submit-row">
-      <input type="submit" class="btn btn-primary" value="{{ _gettext('Save') }}" />
-      {% if cancel_url %}
-        <a href="{{ cancel_url }}" class="btn btn-danger" role="button">{{ _gettext('Cancel') }}</a>
-      {% endif %}
-    </div>
+  <div class="govuk-button-group">
+    <input type="submit" class="govuk-button" value="{{ _gettext('Save') }}" />
+    {% if cancel_url %}
+      <a href="{{ cancel_url }}" class="govuk-link govuk-link--no-visited-state" role="button">{{ _gettext('Cancel') }}</a>
+    {% endif %}
   </div>
 {% endmacro %}
 
