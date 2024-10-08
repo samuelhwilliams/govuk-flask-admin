@@ -17,4 +17,5 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = [
     "flask-vite>=0.5.1",
+    "ruff>=0.6.9",
 ]
