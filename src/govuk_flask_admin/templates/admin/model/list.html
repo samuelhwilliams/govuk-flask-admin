@@ -6,6 +6,7 @@
 {% import 'admin/model/row_actions.html' as row_actions with context %}
 
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+{% from 'govuk_frontend_jinja/components/pagination/macro.html' import govukPagination %}
 
 {% block head %}
   {{ super() }}
@@ -62,14 +63,11 @@
         {% endfor %}
         </tbody>
       </table>
-    </div>
-    {% block list_pager %}
-      {% if num_pages is not none %}
-        {{ lib.pager(page, num_pages, pager_url) }}
-      {% else %}
-        {{ lib.simple_pager(page, data|length == page_size, pager_url) }}
+
+      {% if num_pages %}
+        {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
       {% endif %}
-    {% endblock %}
+    </div>
   {% endblock %}
 
   {% block actions %}

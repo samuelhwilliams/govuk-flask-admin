@@ -9,10 +9,10 @@
 
 ## UI
 
+- DISPLAY PAGE_SIZE OPTIONS
 - Searching/Filtering results
 - Exporting results
 - Fileadmin (s3)
 - Pagesize
 - Form actions
-- fix pagination
 - sorting columns
