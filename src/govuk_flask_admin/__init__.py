@@ -3,9 +3,9 @@ import inspect
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import dedent
-from typing import Literal
+import typing as t
 
-from flask import Flask, Blueprint, url_for, send_from_directory
+from flask import Flask, Blueprint, url_for, send_from_directory, request
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.sqla.form import AdminModelConverter
 from flask_admin.contrib.sqla.tools import is_relationship
@@ -90,14 +90,46 @@ class GovukFlaskAdmin:
             self.init_app(app)
 
     def init_app(self, app: Flask):
-        app.route(
-            "/_govuk_flask_admin/<path:filename>", endpoint="govuk_flask_admin.static"
-        )(self.static)
         app.template_global('govuk_flask_admin_assets_tags')(govuk_flask_admin_assets_tags)
         app.template_global('govuk_pagination_data_builder')(govuk_pagination_params_builder)
 
+        if not app.url_map.host_matching:
+            app.route(
+                "/_govuk_flask_admin/<path:filename>", endpoint="govuk_flask_admin.static"
+            )(self.static)
+
+        else:
+            app.route(
+                "/_govuk_flask_admin/<path:filename>", endpoint="govuk_flask_admin.static", host='<govuk_flask_admin_host>'
+            )(self.static)
+
+            @app.url_defaults
+            def inject_admin_routes_host_if_required(
+                endpoint: str, values: t.Dict[str, t.Any]
+            ) -> None:
+                if app.url_map.is_endpoint_expecting(
+                    endpoint, 'govuk_flask_admin_host'
+                ):
+                    values.setdefault('govuk_flask_admin_host', request.host)
+
+            # Automatically strip `admin_routes_host` from the endpoint values so
+            # that the view methods don't receive that parameter, as it's not actually
+            # required by any of them.
+            @app.url_value_preprocessor
+            def strip_admin_routes_host_from_static_endpoint(
+                endpoint: t.Optional[str], values: t.Optional[t.Dict[str, t.Any]]
+            ) -> None:
+                if (
+                    endpoint
+                    and values
+                    and app.url_map.is_endpoint_expecting(
+                    endpoint, 'govuk_flask_admin_host'
+                )
+                ):
+                    values.pop('govuk_flask_admin_host', None)
+
     def static(
-        self, filename, vite_routes_host: str | None = None  # noqa: ARG002
+        self, filename
     ):
         dist = str(ROOT_DIR / "static" / "govuk-frontend")
         return send_from_directory(dist, filename, max_age=60 * 60 * 24 * 7 * 52)
@@ -124,7 +156,7 @@ class GovukAdminModelConverter(AdminModelConverter):
             "Integer": {"params": {"inputmode": "numeric"}},
         }
 
-    def map_column_via_lookup_table(self, column, lookup: Literal['sqlalchemy_type_widgets', 'sqlalchemy_type_widget_args']):
+    def map_column_via_lookup_table(self, column, lookup: t.Literal['sqlalchemy_type_widgets', 'sqlalchemy_type_widget_args']):
         lookup_table = getattr(self, lookup)
 
         if self.use_mro:
