@@ -90,8 +90,6 @@ class GovukFlaskAdmin:
             self.init_app(app)
 
     def init_app(self, app: Flask):
-        self._blueprint = Blueprint('govuk_flask_admin', 'govuk_flask_admin', static_folder='static', template_folder='templates')
-
         app.route(
             "/_govuk_flask_admin/<path:filename>", endpoint="govuk_flask_admin.static"
         )(self.static)
