@@ -1,3 +1,34 @@
+# How to integrate with Flask-Admin
+
+Make sure your Flask app's Jinja environment is configured to load templates from at least the sources listed below. 
+Then initialise Flask-Admin and govuk-flask-admin appropriately, making sure to pass the GOV.UK Frontend Theme to 
+Flask-Admin.
+
+```python
+from flask import Flask
+from jinja2 import PackageLoader, ChoiceLoader, PrefixLoader
+
+from flask_admin import Admin
+from govuk_flask_admin import GovukFlaskAdmin, GovukFrontendV5_6Theme
+
+app = Flask(...)
+app.jinja_options = {
+    "loader": ChoiceLoader(
+        [
+            PrefixLoader({"govuk_frontend_jinja": PackageLoader("govuk_frontend_jinja")}),
+            PrefixLoader({"govuk_frontend_wtf": PackageLoader("govuk_frontend_wtf")}),
+            PackageLoader("govuk_flask_admin"),
+        ]
+    )
+}
+
+admin = Admin(app, theme=GovukFrontendV5_6Theme())
+govuk_flask_admin = GovukFlaskAdmin(app)
+```
+
+All of your SQLAlchemy model fields should derive from govuk-flask-admin's `GovukModelView`, not from Flask-Admin's 
+`sqla.ModelView`.
+
 ## Developing this extension
 
 ### Rebuilding GOV.UK Frontend assets
