@@ -16,3 +16,4 @@
 - Pagesize
 - Form actions
 - sorting columns
+- Fix sidebar navigation - currently <ul> rather than <nav>

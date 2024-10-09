@@ -19,7 +19,7 @@
             {% set class_name = child.get_class_name() %}
             <li{% if class_name %} class="{{ class_name }}"{% endif %}>
               {%- if child.is_active(admin_view) %}
-                <a class="active" href="{{ child.get_url() }}"{% if child.target %}
+                <a class="govuk-link govuk-link--no-visited-state" href="{{ child.get_url() }}"{% if child.target %}
                    target="{{ child.target }}"{% endif %}>
                   {{ child.name }}</a>
               {% else %}
@@ -37,11 +37,11 @@
       {%- if item.is_accessible() and item.is_visible() -%}
         {% set class_name = item.get_class_name() %}
         {%- if item.is_active(admin_view) %}
-          <li class="active{% if class_name %} {{ class_name }}{% endif %}">
+          <li class="govuk-!-font-weight-bold {% if class_name %} {{ class_name }}{% endif %}">
             {%- else %}
           <li{% if class_name %} class="{{ class_name }}"{% endif %}>
         {%- endif %}
-      <a class="nav-link" href="{{ item.get_url() }}"{% if item.target %} target="{{ item.target }}"{% endif %}>
+      <a class="govuk-link govuk-link--no-visited-state" href="{{ item.get_url() }}"{% if item.target %} target="{{ item.target }}"{% endif %}>
         {{ item.name }}</a>
       </li>
       {%- endif -%}
@@ -55,7 +55,7 @@
     {% set class_name = item.get_class_name() %}
     {% if item.is_accessible() and item.is_visible() %}
       <li{% if class_name %} class="{{ class_name }}"{% endif %}>
-        <a class="nav-link" href="{{ item.get_url() }}"{% if item.target %} target="{{ item.target }}"{% endif %}>
+        <a class="govuk-link govuk-link--no-visited-state" href="{{ item.get_url() }}"{% if item.target %} target="{{ item.target }}"{% endif %}>
           {{ item.name }}</a>
       </li>
     {% endif %}
