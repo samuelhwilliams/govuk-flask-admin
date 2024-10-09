@@ -64,7 +64,7 @@
         </tbody>
       </table>
 
-      {% if num_pages %}
+      {% if num_pages > 1 %}
         {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
       {% endif %}
     </div>

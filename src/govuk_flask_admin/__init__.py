@@ -44,7 +44,7 @@ def govuk_pagination_params_builder(page_zero_indexed, total_pages, url_generato
                 "current": page_zero_indexed == x,
                 "href": url_generator(x),
             }
-            for x in range(1, total_pages + 1)
+            for x in range(0, total_pages)
         ]
 
     else:
