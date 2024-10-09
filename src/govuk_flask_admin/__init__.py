@@ -201,6 +201,34 @@ class GovukAdminModelConverter(AdminModelConverter):
 class GovukModelView(ModelView):
     model_form_converter = GovukAdminModelConverter
 
+    def __init__(
+        self,
+        model,
+        session,
+        name=None,
+        category="Miscellaneous",
+        endpoint=None,
+        url=None,
+        static_folder=None,
+        menu_class_name=None,
+        menu_icon_type=None,
+        menu_icon_value=None,
+    ):
+        # To simplify the sidebar and ensure the subnav groups well, we force a default category.
+        # Suggest overriding this though.
+        super().__init__(
+            model,
+            session,
+            name=name,
+            category=category,
+            endpoint=endpoint,
+            url=url,
+            static_folder=static_folder,
+            menu_class_name=menu_class_name,
+            menu_icon_type=menu_icon_type,
+            menu_icon_value=menu_icon_value,
+        )
+
     def _resolve_widget_class_for_sqlalchemy_column(self, prop: ColumnProperty):
         return GovTextInput
 

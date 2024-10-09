@@ -1,32 +1,28 @@
 {% macro menu(menu_root=None) %}
   {% set is_main_nav = menu_root == None %}
   {% if menu_root is none %}{% set menu_root = admin_view.admin.menu() %}{% endif %}
+
+  <nav class="app-subnav">
   {%- for item in menu_root %}
     {%- if item.is_category() -%}
       {% set children = item.get_children() %}
       {%- if children %}
-        {% set class_name = item.get_class_name() or '' %}
-        {%- if item.is_active(admin_view) %}
-          <li class="{% if class_name %}{{ class_name }}{% endif %}">
-            {% else -%}
-          <li class="{% if class_name %}{{ class_name }}{% endif %}">
-        {%- endif %}
-        <ul class="govuk-!-margin-left-2">
+        <h2 class="app-subnav__theme">{{ item.name }}</h2>
+        <ul class="app-subnav__section">
         {%- for child in children -%}
           {%- if child.is_category() -%}
+            {# THIS IS PROBABLY NOT SUPPORTED PROPERLY #}
             {{ menu(menu_root=[child]) }}
+
           {% else %}
-            {% set class_name = child.get_class_name() %}
-            <li{% if class_name %} class="{{ class_name }}"{% endif %}>
-              {%- if child.is_active(admin_view) %}
-                <a class="govuk-link govuk-link--no-visited-state" href="{{ child.get_url() }}"{% if child.target %}
-                   target="{{ child.target }}"{% endif %}>
-                  {{ child.name }}</a>
-              {% else %}
-                <a href="{{ child.get_url() }}"{% if child.target %}
-                   target="{{ child.target }}"{% endif %}>
-                  {{ child.name }}</a>
-              {%- endif %}
+            <li class="app-subnav__section-item{% if child.is_active(admin_view) %} app-subnav__section-item--current{% endif %}">
+              <a
+                class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline"
+                href="{{ child.get_url() }}"
+                {% if child.target %}target="{{ child.target }}"{% endif %}
+              >
+                {{ child.name }}
+              </a>
             </li>
           {%- endif %}
         {%- endfor %}
@@ -36,17 +32,19 @@
     {%- else %}
       {%- if item.is_accessible() and item.is_visible() -%}
         {% set class_name = item.get_class_name() %}
-        {%- if item.is_active(admin_view) %}
-          <li class="govuk-!-font-weight-bold {% if class_name %} {{ class_name }}{% endif %}">
-            {%- else %}
-          <li{% if class_name %} class="{{ class_name }}"{% endif %}>
-        {%- endif %}
-      <a class="govuk-link govuk-link--no-visited-state" href="{{ item.get_url() }}"{% if item.target %} target="{{ item.target }}"{% endif %}>
-        {{ item.name }}</a>
+        <li class="app-subnav__section-item{% if item.is_active(admin_view) %} app-subnav__section-item--current{% endif %}">
+          <a
+            class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline"
+            href="{{ item.get_url() }}"
+            {% if item.target %} target="{{ item.target }}"{% endif %}
+          >
+            {{ item.name }}
+          </a>
       </li>
       {%- endif -%}
     {% endif -%}
   {% endfor %}
+  </nav>
 {% endmacro %}
 
 {% macro menu_links(links=None) %}
