@@ -257,7 +257,12 @@ class GovukModelView(ModelView):
 
             form_args[column_name] = {"widget": govuk_widget}
 
-        self.form_args = {**form_args, **self.form_args}
+        # For each form field, override the default top-level keys with any provided
+        # by the subclass.
+        for field_name, field_args in form_args.items():
+            form_args[field_name] = {**field_args, **self.form_args.get(field_name, {})}
+
+        self.form_args = form_args
 
     def _populate_implicit_form_widget_args(self):
         if not self.form_widget_args:
