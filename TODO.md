@@ -15,5 +15,4 @@
 - Fileadmin (s3)
 - Pagesize
 - Form actions
-- sorting columns
-- Fix sidebar navigation - currently <ul> rather than <nav>
+- Fix sidebar css (sidebar and subnav are basically tightly coupled, make them the same thing?)
