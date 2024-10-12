@@ -94,17 +94,23 @@ def govuk_flask_admin_assets_tags():
 
 
 class GovukFlaskAdmin:
-    def __init__(self, app: Flask):
+    def __init__(self, app: Flask, service_name: str | None = None):
+        self.service_name = service_name
+
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app: Flask):
+    def init_app(self, app: Flask, service_name: str | None = None):
+        service_name = service_name or self.service_name
+
         app.template_global("govuk_flask_admin_assets_tags")(
             govuk_flask_admin_assets_tags
         )
         app.template_global("govuk_pagination_data_builder")(
             govuk_pagination_params_builder
         )
+
+        self.__inject_jinja2_global_variables(app)
 
         if not app.url_map.host_matching:
             app.route(
@@ -143,6 +149,11 @@ class GovukFlaskAdmin:
                     )
                 ):
                     values.pop("govuk_flask_admin_host", None)
+
+    def __inject_jinja2_global_variables(self, app):
+        @app.context_processor
+        def inject_govuk_flask_admin_globals():
+            return {"govuk_flask_admin_service_name": self.service_name}
 
     def static(self, filename):
         dist = str(ROOT_DIR / "static" / "govuk-frontend")
