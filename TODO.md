@@ -7,6 +7,7 @@
 - delete models
 - think about how to handle model (bulk) actions (done with checkboxes in original flask-admin)
 - think about performance for large/extra large tables
+- make default error messages (eg for Unique, InputRequired, IntegerField) more GOVUK-style/accessible.
 
 ## UI
 

@@ -13,6 +13,7 @@ from flask_admin.theme import Theme
 from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput
 from sqlalchemy.orm import ColumnProperty
 
+
 ROOT_DIR = Path(__file__).parent
 
 
@@ -210,6 +211,17 @@ class GovukAdminModelConverter(AdminModelConverter):
                 return lookup_table[col_type.__name__]
 
         return None
+
+    # TODO: WIP finish fixing up error messages from wtforms
+    # def convert(self, model, mapper, name, prop, field_args, hidden_pk):
+    #     field = super().convert(model, mapper, name, prop, field_args, hidden_pk)
+    #
+    #     if field:
+    #         for validator in field.kwargs.get("validators"):
+    #             if isinstance(validator, InputRequired):
+    #                 validator.message = f"Enter a value for {name.replace('_', ' ')}"
+    #
+    #     return field
 
 
 class GovukModelView(ModelView):
