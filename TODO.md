@@ -6,6 +6,7 @@
 - edit models
 - delete models
 - think about how to handle model (bulk) actions (done with checkboxes in original flask-admin)
+- think about performance for large/extra large tables
 
 ## UI
 
@@ -13,6 +14,5 @@
 - Searching/Filtering results
 - Exporting results
 - Fileadmin (s3)
-- Pagesize
 - Form actions
 - Fix sidebar css (sidebar and subnav are basically tightly coupled, make them the same thing?)
