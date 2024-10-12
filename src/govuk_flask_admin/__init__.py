@@ -105,6 +105,13 @@ class GovukFlaskAdmin:
         def inject_govuk_flask_admin_globals():
             return {"govuk_flask_admin_service_name": self.service_name}
 
+        app.template_global("govuk_flask_admin_assets_tags")(
+            govuk_flask_admin_assets_tags
+        )
+        app.template_global("govuk_pagination_data_builder")(
+            govuk_pagination_params_builder
+        )
+
     def __setup_static_routes(self, app):
         if not app.url_map.host_matching:
             app.route(
@@ -146,13 +153,6 @@ class GovukFlaskAdmin:
 
     def init_app(self, app: Flask, service_name: str | None = None):
         service_name = service_name or self.service_name
-
-        app.template_global("govuk_flask_admin_assets_tags")(
-            govuk_flask_admin_assets_tags
-        )
-        app.template_global("govuk_pagination_data_builder")(
-            govuk_pagination_params_builder
-        )
 
         self.__inject_jinja2_global_variables(app)
         self.__setup_static_routes(app)
