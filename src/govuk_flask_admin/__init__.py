@@ -100,18 +100,12 @@ class GovukFlaskAdmin:
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app: Flask, service_name: str | None = None):
-        service_name = service_name or self.service_name
+    def __inject_jinja2_global_variables(self, app):
+        @app.context_processor
+        def inject_govuk_flask_admin_globals():
+            return {"govuk_flask_admin_service_name": self.service_name}
 
-        app.template_global("govuk_flask_admin_assets_tags")(
-            govuk_flask_admin_assets_tags
-        )
-        app.template_global("govuk_pagination_data_builder")(
-            govuk_pagination_params_builder
-        )
-
-        self.__inject_jinja2_global_variables(app)
-
+    def __setup_static_routes(self, app):
         if not app.url_map.host_matching:
             app.route(
                 "/_govuk_flask_admin/<path:filename>",
@@ -150,10 +144,18 @@ class GovukFlaskAdmin:
                 ):
                     values.pop("govuk_flask_admin_host", None)
 
-    def __inject_jinja2_global_variables(self, app):
-        @app.context_processor
-        def inject_govuk_flask_admin_globals():
-            return {"govuk_flask_admin_service_name": self.service_name}
+    def init_app(self, app: Flask, service_name: str | None = None):
+        service_name = service_name or self.service_name
+
+        app.template_global("govuk_flask_admin_assets_tags")(
+            govuk_flask_admin_assets_tags
+        )
+        app.template_global("govuk_pagination_data_builder")(
+            govuk_pagination_params_builder
+        )
+
+        self.__inject_jinja2_global_variables(app)
+        self.__setup_static_routes(app)
 
     def static(self, filename):
         dist = str(ROOT_DIR / "static" / "govuk-frontend")
