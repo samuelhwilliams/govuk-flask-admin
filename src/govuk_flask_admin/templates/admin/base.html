@@ -16,7 +16,6 @@
 
 {% block main %}
   <div class="govuk-width-container {%- if containerClasses %} {{ containerClasses }}{% endif %}">
-    {% block beforeContent %}{% endblock %}
     <div class="govuk-grid-row gfa-grid-row--sidebar">
       <div class="govuk-grid-column-one-quarter gfa-grid-column--sidebar">
         {% block main_menu %}
@@ -31,6 +30,8 @@
       </div>
 
       <div class="govuk-grid-column-three-quarters govuk-!-padding-top-5">
+        {% block beforeContent %}{% endblock %}
+
         <main class="govuk-main-wrapper {%- if mainClasses %} {{ mainClasses }}{% endif %}" id="main-content" {%- if mainLang %} lang="{{ mainLang }}"{% endif %}>
           {% block action_panel %}
           Do the hard stuff

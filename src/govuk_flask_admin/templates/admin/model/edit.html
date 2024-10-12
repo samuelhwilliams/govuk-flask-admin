@@ -7,11 +7,11 @@
   {{ lib.form_css() }}
 {% endblock %}
 
-{% block action_panel %}
-  {% block navlinks %}
-    {{ govukBackLink(params={"href": return_url}) }}
-  {% endblock %}
+{% block beforeContent %}
+  {{ govukBackLink(params={"href": return_url}) }}
+{% endblock %}
 
+{% block action_panel %}
   {% block edit_form %}
     {{ lib.render_form(form, return_url, form_opts) }}
   {% endblock %}

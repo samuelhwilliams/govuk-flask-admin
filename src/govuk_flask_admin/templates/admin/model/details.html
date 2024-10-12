@@ -2,11 +2,11 @@
 {% import 'admin/lib.html' as lib with context %}
 {% from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink %}
 
-{% block body %}
-  {% block navlinks %}
-    {{ govukBackLink(params={"href": return_url}) }}
-  {% endblock %}
+{% block beforeContent %}
+  {{ govukBackLink(params={"href": return_url}) }}
+{% endblock %}
 
+{% block body %}
   {% block details_table %}
     <table class="table table-hover table-bordered searchable">
     {% for c, name in details_columns %}
