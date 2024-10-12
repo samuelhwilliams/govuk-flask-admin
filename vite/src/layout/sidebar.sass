@@ -1,16 +1,23 @@
+.gfa-grid-row--sidebar
+  display: flex
+
+.gfa-grid-column--sidebar
+  flex: 1 1 auto
+
 .gfa-sidebar
   $gfa-sidebar-active-link-border-width: govuk-spacing(1)
   $gfa-sidebar-background: $govuk-canvas-background-colour
   $gfa-sidebar-border-colour: $govuk-border-colour
 
-  .gfa-sidebar
-    background-color: $gfa-sidebar-background
-    height: 100%
+  display: flex
+  justify-content: end
+  text-align: end
+
+  height: 100%
+
+  background-image: linear-gradient(to left, $gfa-sidebar-background, white)
 
   .gfa-sidebar__container
-    height: 100%
+    height: calc(100% - 25px)
+    width: 100%
     border-right: 1px solid $gfa-sidebar-border-colour
-    display: flex
-    flex-direction: column
-    align-items: start
-    background-color: $gfa-sidebar-background
