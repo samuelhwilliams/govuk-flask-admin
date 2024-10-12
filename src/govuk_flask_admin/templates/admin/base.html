@@ -14,52 +14,31 @@
   {{ govukHeader({"serviceName": "Flask Admin", "classes": "govuk-header--full-width-border"}) }}
 {% endblock %}
 
-{% block content %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-quarter">
-      {% block main_menu %}
-        <div class="gfa-sidebar">
-          <div class="gfa-sidebar__container govuk-!-padding-top-5 govuk-!-padding-left-5">
-            <ul class="govuk-list">
-              {{ layout.menu() }}
-            </ul>
+{% block main %}
+  <div class="govuk-width-container {%- if containerClasses %} {{ containerClasses }}{% endif %}">
+    {% block beforeContent %}{% endblock %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-quarter">
+        {% block main_menu %}
+          <div class="gfa-sidebar">
+            <div class="gfa-sidebar__container govuk-!-padding-top-5 govuk-!-padding-left-5">
+              <ul class="govuk-list">
+                {{ layout.menu() }}
+              </ul>
+            </div>
           </div>
-        </div>
-      {% endblock %}
-    </div>
-    <div class="govuk-grid-column-three-quarters govuk-!-padding-top-5">
-      {% block action_panel %}
-      Do the hard stuff
-      {% endblock %}
-    </div>
-  </div>
-{#
-  <div class="container{% if theme.fluid %}-fluid{% endif %}">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-2" role="navigation">
-      <!-- Brand and toggle get grouped for better mobile display -->
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#admin-navbar-collapse"
-              aria-controls="admin-navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-      </button>
-      <!-- navbar content -->
-      <div class="collapse navbar-collapse" id="admin-navbar-collapse">
-      {% block brand %}
-          <a class="navbar-brand" href="{{ admin_view.admin.url }}">{{ admin_view.admin.name }}</a
-      {% endblock %}
-
-          {% block menu_links %}
-          <ul class="govuk-list">
-              {{ layout.menu_links() }}
-          </ul>
-          {% endblock %}
-      {% block access_control %}
-      {% endblock %}
+        {% endblock %}
       </div>
-    </nav>
 
-    {% block body %}{% endblock %}
+      <div class="govuk-grid-column-three-quarters govuk-!-padding-top-5">
+        <main class="govuk-main-wrapper {%- if mainClasses %} {{ mainClasses }}{% endif %}" id="main-content" {%- if mainLang %} lang="{{ mainLang }}"{% endif %}>
+          {% block action_panel %}
+          Do the hard stuff
+          {% endblock %}
+        </main>
+      </div>
+    </div>
   </div>
-#}
 {% endblock %}
 
 {% block bodyEnd %}
