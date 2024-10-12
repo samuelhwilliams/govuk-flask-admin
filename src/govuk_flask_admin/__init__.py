@@ -10,7 +10,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.sqla.form import AdminModelConverter
 from flask_admin.contrib.sqla.tools import is_relationship
 from flask_admin.theme import Theme
-from govuk_frontend_wtf.wtforms_widgets import GovTextInput
+from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput
 from sqlalchemy.orm import ColumnProperty
 
 ROOT_DIR = Path(__file__).parent
@@ -161,9 +161,10 @@ class GovukAdminModelConverter(AdminModelConverter):
     def __init__(self, session, view):
         super().__init__(session, view)
 
-        self.sqlalchemy_type_widgets = {
-            "String": GovTextInput(),
-            "Integer": GovTextInput(),
+        self.sqlalchemy_type_field_args = {
+            "String": {"widget": GovTextInput()},
+            "Integer": {"widget": GovTextInput()},
+            "Date": {"widget": GovDateInput(), "format": "%d %m %Y"},
         }
 
         self.sqlalchemy_type_widget_args = {
@@ -174,7 +175,7 @@ class GovukAdminModelConverter(AdminModelConverter):
     def map_column_via_lookup_table(
         self,
         column,
-        lookup: t.Literal["sqlalchemy_type_widgets", "sqlalchemy_type_widget_args"],
+        lookup: t.Literal["sqlalchemy_type_field_args", "sqlalchemy_type_widget_args"],
     ):
         lookup_table = getattr(self, lookup)
 
@@ -251,11 +252,14 @@ class GovukModelView(ModelView):
 
         form_args = {}
         for column_name, column in self._iterate_model_fields():
-            govuk_widget = converter.map_column_via_lookup_table(
-                column, "sqlalchemy_type_widgets"
+            form_field_args = (
+                converter.map_column_via_lookup_table(
+                    column, "sqlalchemy_type_field_args"
+                )
+                or {}
             )
 
-            form_args[column_name] = {"widget": govuk_widget}
+            form_args[column_name] = form_field_args
 
         # For each form field, override the default top-level keys with any provided
         # by the subclass.
@@ -272,8 +276,11 @@ class GovukModelView(ModelView):
 
         form_widget_args = {}
         for column_name, column in self._iterate_model_fields():
-            form_widget_args[column_name] = converter.map_column_via_lookup_table(
-                column, "sqlalchemy_type_widget_args"
+            form_widget_args[column_name] = (
+                converter.map_column_via_lookup_table(
+                    column, "sqlalchemy_type_widget_args"
+                )
+                or {}
             )
 
         self.form_widget_args = {**form_widget_args, **self.form_widget_args}

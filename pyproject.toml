@@ -19,3 +19,6 @@ dev-dependencies = [
     "flask-vite>=0.5.1",
     "ruff>=0.6.9",
 ]
+
+[tool.uv.sources]
+flask-admin = { git = "https://github.com/flask-admin/flask-admin", branch = "setdefault-widget" }
