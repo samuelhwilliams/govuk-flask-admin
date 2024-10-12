@@ -1,6 +1,7 @@
 {% extends 'admin/master.html' %}
 {% import 'admin/lib.html' as lib with context %}
 {% from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink %}
+{%- from 'govuk_frontend_jinja/components/error-summary/macro.html' import govukErrorSummary -%}
 
 {% block head %}
   {{ super() }}
@@ -12,6 +13,10 @@
 {% endblock %}
 
 {% block action_panel %}
+  {% if form.errors %}
+    {{ govukErrorSummary(wtforms_errors(form)) }}
+  {% endif %}
+
   {% block edit_form %}
     {{ lib.render_form(form, return_url, form_opts) }}
   {% endblock %}
