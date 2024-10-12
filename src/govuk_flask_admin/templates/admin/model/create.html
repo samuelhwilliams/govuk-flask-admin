@@ -1,5 +1,6 @@
 {% extends 'admin/master.html' %}
 {% import 'admin/lib.html' as lib with context %}
+{% from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink %}
 
 {% block head %}
   {{ super() }}
@@ -8,14 +9,7 @@
 
 {% block action_panel %}
   {% block navlinks %}
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a href="{{ return_url }}" class="nav-link">{{ _gettext('List') }}</a>
-    </li>
-    <li class="nav-item">
-        <a href="javascript:void(0)" class="nav-link active">{{ _gettext('Create') }}</a>
-    </li>
-  </ul>
+    {{ govukBackLink(params={"href": return_url}) }}
   {% endblock %}
 
   {% block create_form %}

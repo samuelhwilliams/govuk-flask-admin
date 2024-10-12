@@ -1,26 +1,10 @@
 {% extends 'admin/master.html' %}
 {% import 'admin/lib.html' as lib with context %}
+{% from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink %}
 
 {% block body %}
   {% block navlinks %}
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link" href="{{ return_url }}">{{ _gettext('List') }}</a>
-    </li>
-    {%- if admin_view.can_create -%}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ get_url('.create_view', url=return_url) }}">{{ _gettext('Create') }}</a>
-    </li>
-    {%- endif -%}
-    {%- if admin_view.can_edit -%}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ get_url('.edit_view', id=request.args.get('id'), url=return_url) }}">{{ _gettext('Edit') }}</a>
-    </li>
-    {%- endif -%}
-    <li class="nav-item">
-        <a class="nav-link active disabled" href="javascript:void(0)">{{ _gettext('Details') }}</a>
-    </li>
-  </ul>
+    {{ govukBackLink(params={"href": return_url}) }}
   {% endblock %}
 
   {% block details_table %}
