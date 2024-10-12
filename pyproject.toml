@@ -21,4 +21,4 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-flask-admin = { git = "https://github.com/flask-admin/flask-admin", branch = "setdefault-widget" }
+flask-admin = { git = "https://github.com/flask-admin/flask-admin", branch = "master" }
