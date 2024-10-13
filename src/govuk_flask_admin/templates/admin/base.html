@@ -19,13 +19,7 @@
     <div class="govuk-grid-row gfa-grid-row--sidebar">
       <div class="govuk-grid-column-one-quarter gfa-grid-column--sidebar">
         {% block main_menu %}
-          <div class="gfa-sidebar">
-            <div class="gfa-sidebar__container govuk-!-padding-top-5 govuk-!-padding-left-5">
-              <ul class="govuk-list">
-                {{ layout.menu() }}
-              </ul>
-            </div>
-          </div>
+          {{ layout.menu() }}
         {% endblock %}
       </div>
 
