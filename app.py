@@ -3,6 +3,7 @@ An example app to be used with the govuk-flask-admin theme for testing.
 """
 
 import datetime
+import enum
 import random
 import uuid
 from typing import Optional
@@ -20,6 +21,12 @@ from sqlalchemy.testing.schema import mapped_column
 from wtforms.validators import Email
 
 
+class FavouriteColour(enum.Enum):
+    RED = "red"
+    BLUE = "blue"
+    YELLOW = "yellow"
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -32,6 +39,7 @@ class User(Base):
     name: Mapped[str]
     age: Mapped[int]
     job: Mapped[str]
+    favourite_colour: Mapped[FavouriteColour]
     account: Mapped[Optional["Account"]] = relationship(back_populates="user")
     created_at: Mapped[datetime.date]
 
@@ -75,7 +83,7 @@ class UserModelView(GovukModelView):
     form_args = {"email": {"validators": [Email()]}}
 
     # Enable filtering on multiple columns
-    column_filters = ["age", "job", "email", "created_at"]
+    column_filters = ["age", "job", "email", "created_at", "favourite_colour"]
 
     # Enable search
     column_searchable_list = ["email", "name"]
@@ -104,6 +112,7 @@ with app.app_context():
             name=faker.Faker().name(),
             age=random.randint(18, 100),
             job="blah blah",
+            favourite_colour=random.choice(list(FavouriteColour)),
         )
         db.session.add(u)
         db.session.flush()
