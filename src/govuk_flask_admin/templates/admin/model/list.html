@@ -95,6 +95,17 @@
     </div>
   </div>
 
+  {# Bulk actions form - wrap table if actions are enabled #}
+  {% if actions %}
+    <form method="POST" action="{{ get_url('.action_view') }}" id="bulk-action-form">
+      {% if action_form.csrf_token is defined and action_form.csrf_token %}
+        {{ action_form.csrf_token }}
+      {% elif csrf_token is defined and csrf_token %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% endif %}
+      <input type="hidden" name="url" value="{{ return_url }}">
+  {% endif %}
+
   {# Table #}
   {% block model_list_table %}
     <table class="govuk-table">
@@ -210,16 +221,11 @@
     {% endif %}
   {% endblock %}
 
-  {# Bulk actions form #}
+  {# Bulk actions controls - inside the form #}
   {% if actions %}
     {% from 'govuk_frontend_jinja/components/select/macro.html' import govukSelect %}
 
-    <form method="POST" action="{{ get_url('.action_view') }}" class="govuk-!-margin-top-6">
-      {% if csrf_token %}
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {% endif %}
-      <input type="hidden" name="url" value="{{ return_url }}">
-
+    <div class="govuk-!-margin-top-6">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-one-half">
           {% set action_items = [{"value": "", "text": "Choose an action"}] %}
@@ -245,11 +251,9 @@
       <p class="govuk-body govuk-!-margin-top-2">
         <span id="selected-count">0</span> item(s) selected
       </p>
+    </div>
     </form>
   {% endif %}
-
-  {# Actions confirmation modals if needed #}
-  {{ actionlib.form(actions, get_url('.action_view')) }}
 {% endblock %}
 
 {% block bodyEnd %}
@@ -284,6 +288,7 @@
         var selectAll = document.getElementById('select-all');
         var checkboxes = document.querySelectorAll('.action-checkbox');
         var selectedCount = document.getElementById('selected-count');
+        var bulkForm = document.getElementById('bulk-action-form');
 
         function updateCount() {
           var count = document.querySelectorAll('.action-checkbox:checked').length;
@@ -305,14 +310,35 @@
           cb.addEventListener('change', updateCount);
         });
 
-        var actionSubmit = document.getElementById('action-submit');
-        if (actionSubmit) {
-          actionSubmit.addEventListener('click', function(e) {
+        // Validate on form submit
+        if (bulkForm) {
+          bulkForm.addEventListener('submit', function(e) {
             var count = document.querySelectorAll('.action-checkbox:checked').length;
+            var actionSelect = document.getElementById('action');
+
             if (count === 0) {
               e.preventDefault();
               alert('Please select at least one record.');
+              return false;
             }
+
+            if (!actionSelect || !actionSelect.value) {
+              e.preventDefault();
+              alert('Please select an action.');
+              return false;
+            }
+
+            // Check for confirmation required actions
+            var action = actionSelect.value;
+            {% if actions_confirmation %}
+              var confirmations = {{ actions_confirmation|tojson|safe }};
+              if (confirmations[action]) {
+                if (!confirm(confirmations[action])) {
+                  e.preventDefault();
+                  return false;
+                }
+              }
+            {% endif %}
           });
         }
       })();
