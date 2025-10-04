@@ -14,7 +14,7 @@ from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput
 from sqlalchemy.orm import ColumnProperty
 
 
-ROOT_DIR = Path(__file__).parent
+ROOT_DIR = Path(__file__).parent.parent
 
 
 @dataclass
@@ -77,7 +77,8 @@ def govuk_pagination_params_builder(page_zero_indexed, total_pages, url_generato
 
 
 def govuk_flask_admin_assets_tags():
-    manifest_path = ROOT_DIR / "static" / "govuk-frontend"
+    manifest_path = ROOT_DIR / "assets" / "dist" / "assets"
+    print(manifest_path)
 
     js_file = Path(glob.glob(f"{manifest_path}/*.js")[0]).name
     css_file = Path(glob.glob(f"{manifest_path}/*.css")[0]).name
@@ -159,7 +160,7 @@ class GovukFlaskAdmin:
         self.__setup_static_routes(app)
 
     def static(self, filename):
-        dist = str(ROOT_DIR / "static" / "govuk-frontend")
+        dist = str(ROOT_DIR / "assets" / "dist" / "assets")
         return send_from_directory(dist, filename, max_age=60 * 60 * 24 * 7 * 52)
 
 

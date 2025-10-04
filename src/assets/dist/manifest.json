@@ -1,0 +1,13 @@
+{
+  "src/assets/main.js": {
+    "file": "assets/main-Cz2toYOX.js",
+    "name": "main",
+    "src": "src/assets/main.js",
+    "isEntry": true
+  },
+  "src/assets/main.scss": {
+    "file": "assets/main-X8Dj-TD2.css",
+    "src": "src/assets/main.scss",
+    "isEntry": true
+  }
+}
