@@ -16,6 +16,28 @@
 {% endblock %}
 
 {% block action_panel %}
+  {# Flash messages using GOV.UK Notification Banner #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% from 'govuk_frontend_jinja/components/notification-banner/macro.html' import govukNotificationBanner %}
+
+      {% for category, message in messages %}
+        {% if category == 'success' %}
+          {{ govukNotificationBanner({
+            "type": "success",
+            "html": message
+          }) }}
+        {% else %}
+          {# error, warning, or other categories #}
+          {{ govukNotificationBanner({
+            "html": message,
+            "titleText": "Important" if category == 'error' else "Information"
+          }) }}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
       <h1 class="govuk-heading-l">{{ admin_view.name }}</h1>
