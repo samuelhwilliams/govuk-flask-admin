@@ -16,6 +16,62 @@
 {% endblock %}
 
 {% block action_panel %}
+  {# Confirmation banner for bulk actions - shown at top #}
+  {% if actions and request.args.get('_confirm_action') %}
+    {% from 'govuk_frontend_jinja/components/notification-banner/macro.html' import govukNotificationBanner %}
+    {% set action_to_confirm = request.args.get('_confirm_action') %}
+    {% set action_name = dict(actions).get(action_to_confirm, action_to_confirm) %}
+    {% set confirmation_message = actions_confirmation.get(action_to_confirm, 'Are you sure you want to perform this action?') %}
+
+    {% set confirmation_html %}
+      <h3 class="govuk-notification-banner__heading">
+        Confirm: {{ action_name }}
+      </h3>
+      <p class="govuk-body">{{ confirmation_message }}</p>
+      <p class="govuk-body"><strong>{{ request.args.getlist('rowid')|length }} item(s) selected</strong></p>
+
+      <form method="POST" action="{{ get_url('.action_view') }}" style="display: inline;">
+        {% if action_form.csrf_token is defined and action_form.csrf_token %}
+          {{ action_form.csrf_token }}
+        {% elif csrf_token is defined and csrf_token %}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+        <input type="hidden" name="action" value="{{ action_to_confirm }}">
+        <input type="hidden" name="url" value="{{ return_url }}">
+
+        {# Include the rowids from the query string #}
+        {% for rowid in request.args.getlist('rowid') %}
+          <input type="hidden" name="rowid" value="{{ rowid }}">
+        {% endfor %}
+
+        {{ govukButton({
+          "text": "Confirm " + action_name,
+          "classes": "govuk-button--warning"
+        }) }}
+      </form>
+
+      {% set cancel_url = request.base_url %}
+      {% if request.args %}
+        {% set cancel_params = [] %}
+        {% for key, value in request.args.items(multi=True) %}
+          {% if key not in ['_confirm_action', 'rowid'] %}
+            {% set _ = cancel_params.append((key, value)) %}
+          {% endif %}
+        {% endfor %}
+        {% if cancel_params %}
+          {% set cancel_url = cancel_url + '?' + cancel_params|map('join', '=')|join('&') %}
+        {% endif %}
+      {% endif %}
+      <a href="{{ cancel_url }}" class="govuk-link govuk-link--no-visited-state govuk-!-margin-left-3">Cancel</a>
+    {% endset %}
+
+    {{ govukNotificationBanner({
+      "html": confirmation_html,
+      "titleText": "Confirm action",
+      "classes": "govuk-notification-banner--important"
+    }) }}
+  {% endif %}
+
   {# Flash messages using GOV.UK Notification Banner #}
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -332,7 +388,7 @@
           cb.addEventListener('change', updateCount);
         });
 
-        // Validate on form submit
+        // Validate on form submit and handle confirmation
         if (bulkForm) {
           bulkForm.addEventListener('submit', function(e) {
             var count = document.querySelectorAll('.action-checkbox:checked').length;
@@ -355,10 +411,22 @@
             {% if actions_confirmation %}
               var confirmations = {{ actions_confirmation|tojson|safe }};
               if (confirmations[action]) {
-                if (!confirm(confirmations[action])) {
-                  e.preventDefault();
-                  return false;
-                }
+                e.preventDefault();
+
+                // Build confirmation URL with selected items
+                var url = new URL(window.location.href);
+                url.searchParams.set('_confirm_action', action);
+
+                // Add selected row IDs to the URL
+                var checkboxes = document.querySelectorAll('.action-checkbox:checked');
+                url.searchParams.delete('rowid'); // Clear existing
+                checkboxes.forEach(function(cb) {
+                  url.searchParams.append('rowid', cb.value);
+                });
+
+                // Redirect to the confirmation page
+                window.location.href = url.toString();
+                return false;
               }
             {% endif %}
           });

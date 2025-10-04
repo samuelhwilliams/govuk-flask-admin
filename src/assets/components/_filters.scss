@@ -36,3 +36,19 @@
     max-width: 100%;
   }
 }
+
+// Confirmation banner styling
+.govuk-notification-banner--important {
+  border-color: $govuk-error-colour;
+
+  .govuk-notification-banner__header {
+    background-color: $govuk-error-colour;
+  }
+}
+
+// Ensure buttons in notification banners are properly spaced
+.govuk-notification-banner {
+  .govuk-button {
+    margin-bottom: 0;
+  }
+}
