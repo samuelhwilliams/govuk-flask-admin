@@ -37,7 +37,19 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% endif %}
         <input type="hidden" name="action" value="{{ action_to_confirm }}">
-        <input type="hidden" name="url" value="{{ return_url }}">
+        {% set clean_return_url = request.base_url %}
+        {% if request.args %}
+          {% set return_params = [] %}
+          {% for key, value in request.args.items(multi=True) %}
+            {% if key not in ['_confirm_action', 'rowid'] %}
+              {% set _ = return_params.append((key, value)) %}
+            {% endif %}
+          {% endfor %}
+          {% if return_params %}
+            {% set clean_return_url = clean_return_url + '?' + return_params|map('join', '=')|join('&') %}
+          {% endif %}
+        {% endif %}
+        <input type="hidden" name="url" value="{{ clean_return_url }}">
 
         {# Include the rowids from the query string #}
         {% for rowid in request.args.getlist('rowid') %}
