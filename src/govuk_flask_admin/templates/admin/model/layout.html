@@ -1,7 +1,7 @@
 {% from 'govuk_frontend_jinja/components/accordion/macro.html' import govukAccordion %}
 {% from 'govuk_frontend_jinja/components/radios/macro.html' import govukRadios %}
 {% from 'govuk_frontend_jinja/components/input/macro.html' import govukInput %}
-{% from 'govuk_frontend_jinja/components/select/macro.html' import govukSelect %}
+{% from 'components/select/macro.html' import govukSelect %} {# https://github.com/LandRegistry/govuk-frontend-jinja/issues/82: the govuk_frontend_jinja component lowercases select option values incorrectly; this breaks flask-admin enum filtering #}
 {% from 'govuk_frontend_jinja/components/date-input/macro.html' import govukDateInput %}
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'govuk_frontend_jinja/components/details/macro.html' import govukDetails %}
@@ -16,7 +16,7 @@
 {%- endmacro %}
 
 {# Render individual filter input based on filter type #}
-{% macro render_filter_input(filter, filter_key, current_value) %}
+{% macro render_filter_input(filter, filter_key, current_value, filters) %}
   {% if filter.type == 'datepicker' %}
     {# GOV.UK Date Input - split into day/month/year fields #}
     {% set date_parts = current_value.split('-') if current_value and current_value.strip() else [] %}
@@ -69,9 +69,28 @@
   {% elif filter.options %}
     {# Select dropdown for filters with predefined options #}
     {% set select_items = [{"value": "", "text": "Select..."}] %}
+    {# Get the actual filter object from filters list using filter.index #}
+    {% set actual_filter = filters[filter.index] if filters and filter.index < filters|length else none %}
     {% for opt_value, opt_label in filter.options %}
-      {% set is_selected = (current_value and current_value.strip() == opt_value|string) %}
-      {% set _ = select_items.append({"value": opt_value, "text": opt_label, "selected": is_selected}) %}
+      {# For enum filters, Flask-Admin provides enum values in options but expects enum names in form submission #}
+      {# Check if the actual filter object has enum_class attribute (for EnumEqualFilter, etc.) #}
+      {% if actual_filter and actual_filter.enum_class is defined and actual_filter.enum_class is not none %}
+        {# opt_value contains the enum value (e.g., "red") from column.type.enums #}
+        {# We need to find the enum name (e.g., "RED") for form submission #}
+        {# And use the enum value (e.g., "red") for display #}
+        {% set ns = namespace(enum_name=opt_value, display_label=opt_value) %}
+        {% for member in actual_filter.enum_class %}
+          {% if member.value == opt_value or member.name == opt_value %}
+            {% set ns.enum_name = opt_value %}
+            {% set ns.display_label = member.value %}
+          {% endif %}
+        {% endfor %}
+        {% set is_selected = (current_value and current_value.strip() == ns.enum_name|string) %}
+        {% set _ = select_items.append({"value": ns.enum_name, "text": ns.display_label, "selected": is_selected}) %}
+      {% else %}
+        {% set is_selected = (current_value and current_value.strip() == opt_value|string) %}
+        {% set _ = select_items.append({"value": opt_value, "text": opt_label, "selected": is_selected}) %}
+      {% endif %}
     {% endfor %}
 
     {{ govukSelect({
@@ -101,7 +120,7 @@
 {% endmacro %}
 
 {# Render all filters for a given filter group #}
-{% macro render_filter_group_content(filter_name, filter_list, active_filters) %}
+{% macro render_filter_group_content(filter_name, filter_list, active_filters, filters) %}
   <div class="govuk-form-group">
     <fieldset class="govuk-fieldset">
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
@@ -113,7 +132,7 @@
         {% set current_value = get_active_filter_value(active_filters, filter.index)|trim %}
 
         <div class="govuk-!-margin-bottom-4">
-          {{ render_filter_input(filter, filter_key, current_value) }}
+          {{ render_filter_input(filter, filter_key, current_value, filters) }}
         </div>
       {% endfor %}
     </fieldset>
@@ -147,7 +166,7 @@
       {% set accordion_items = [] %}
       {% for filter_name, filter_list in filter_groups.items() %}
         {% set filter_content %}
-          {{ render_filter_group_content(filter_name, filter_list, active_filters) }}
+          {{ render_filter_group_content(filter_name, filter_list, active_filters, filters) }}
         {% endset %}
         {% set _ = accordion_items.append({
           "heading": {"text": filter_name},
@@ -163,7 +182,7 @@
     {% else %}
       {# Simple rendering for 1-2 filter groups #}
       {% for filter_name, filter_list in filter_groups.items() %}
-        {{ render_filter_group_content(filter_name, filter_list, active_filters) }}
+        {{ render_filter_group_content(filter_name, filter_list, active_filters, filters) }}
       {% endfor %}
     {% endif %}
   {% endif %}
