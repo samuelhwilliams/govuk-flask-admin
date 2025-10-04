@@ -69,10 +69,27 @@ WTFormsHelpers(app)
 
 class UserModelView(GovukModelView):
     page_size = 15
+    can_set_page_size = True
+    page_size_options = [10, 15, 25, 50]
 
     form_args = {"email": {"validators": [Email()]}}
 
-    column_filters = ["age", "job"]
+    # Enable filtering on multiple columns
+    column_filters = ["age", "job", "email", "created_at"]
+
+    # Enable search
+    column_searchable_list = ["email", "name"]
+
+    # Enable export
+    can_export = True
+    export_types = ["csv"]
+
+    # Add column descriptions for accessibility
+    column_descriptions = {
+        "age": "User's age in years",
+        "email": "Email address for contacting the user",
+        "created_at": "Date the user account was created"
+    }
 
 
 db = SQLAlchemy(app)

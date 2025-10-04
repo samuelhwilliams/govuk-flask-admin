@@ -1,0 +1,38 @@
+// GOV.UK Flask Admin - Filter Styles
+
+.gfa-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: govuk-spacing(2);
+}
+
+.gfa-filter-tag-remove {
+  margin-left: govuk-spacing(1);
+  text-decoration: none;
+  font-weight: bold;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 3px solid $govuk-focus-colour;
+    outline-offset: 0;
+    background-color: $govuk-focus-colour;
+  }
+}
+
+// Ensure filter form elements are accessible
+#filter_form {
+  .govuk-form-group {
+    margin-bottom: govuk-spacing(4);
+  }
+}
+
+// Page size form styling
+#page-size-form {
+  .govuk-select {
+    width: auto;
+    max-width: 100%;
+  }
+}

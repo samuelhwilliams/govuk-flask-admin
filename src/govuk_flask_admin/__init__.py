@@ -256,6 +256,71 @@ class GovukModelView(ModelView):
             menu_icon_value=menu_icon_value,
         )
 
+    def _get_remove_filter_url(
+        self,
+        filter_position,
+        active_filters,
+        return_url,
+        sort_column,
+        sort_desc,
+        search,
+        page_size,
+        default_page_size,
+        extra_args
+    ):
+        """
+        Generate URL to remove a specific filter while preserving other state.
+
+        :param filter_position: Position of filter to remove in active_filters list
+        :param active_filters: List of currently active filters (idx, flt_name, value) tuples
+        :param return_url: Base return URL
+        :param sort_column: Current sort column index
+        :param sort_desc: Whether sort is descending
+        :param search: Current search query
+        :param page_size: Current page size
+        :param default_page_size: Default page size
+        :param extra_args: Extra query arguments to preserve
+        """
+        # Build filter args excluding the one to remove
+        # active_filters is a list of (idx, flt_name, value) tuples
+        filter_args = {}
+        for pos, (idx, flt_name, value) in enumerate(active_filters):
+            if pos != filter_position:
+                # Reconstruct filter key using the format Flask-Admin expects
+                # The key format is: flt{position}_{arg_name}
+                # where arg_name comes from get_filter_arg(idx, filter_obj)
+                if idx < len(self._filters):
+                    filter_obj = self._filters[idx]
+                    arg_name = self.get_filter_arg(idx, filter_obj)
+                    filter_key = f"flt{pos}_{arg_name}"
+                    filter_args[filter_key] = value
+
+        # Build complete URL with all state preserved
+        kwargs = {}
+
+        # Add filters
+        kwargs.update(filter_args)
+
+        # Add sort
+        if sort_column is not None:
+            kwargs['sort'] = sort_column
+        if sort_desc:
+            kwargs['desc'] = 1
+
+        # Add search
+        if search:
+            kwargs['search'] = search
+
+        # Add page size if not default
+        if page_size and page_size != default_page_size:
+            kwargs['page_size'] = page_size
+
+        # Add extra args
+        if extra_args:
+            kwargs.update(extra_args)
+
+        return self.get_url('.index_view', **kwargs)
+
     def _resolve_widget_class_for_sqlalchemy_column(self, prop: ColumnProperty):
         return GovTextInput
 
