@@ -279,7 +279,7 @@
     {% set is_selected = (page_size == option) %}
     {% set _ = select_items.append({
       "value": option,
-      "text": option ~ " items",
+      "text": option ~ " items per page",
       "selected": is_selected
     }) %}
   {% endfor %}
@@ -287,7 +287,7 @@
   {{ govukSelect({
     "id": "page-size",
     "name": "page_size",
-    "label": {"text": "Items per page", "classes": "govuk-label--s"},
+    "label": {"text": "Items per page", "classes": "govuk-label--s govuk-visually-hidden"},
     "items": select_items,
     "attributes": {"onchange": "this.form.submit()"}
   }) }}
@@ -303,18 +303,16 @@
 
 {# Export options #}
 {% macro export_options() %}
-<div class="govuk-!-margin-top-2">
-  <h3 class="govuk-heading-s">Export</h3>
+  <h3 class="govuk-heading-s govuk-visually-hidden">Export</h3>
   <ul class="govuk-list">
     {% for export_type in admin_view.export_types %}
       <li>
         <a href="{{ get_url('.export', export_type=export_type, **request.args) }}"
-           class="govuk-link govuk-link--no-visited-state"
+           class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0"
            download>
-          Export as {{ export_type|upper }}
+          Download {{ count }} results as {{ export_type|upper }}
         </a>
       </li>
     {% endfor %}
   </ul>
-</div>
 {% endmacro %}

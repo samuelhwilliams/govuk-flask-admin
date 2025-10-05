@@ -8,6 +8,7 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'govuk_frontend_jinja/components/pagination/macro.html' import govukPagination %}
 {% from 'govuk_frontend_jinja/components/details/macro.html' import govukDetails %}
+{% from 'components/select/macro.html' import govukSelect %} {# https://github.com/LandRegistry/govuk-frontend-jinja/issues/82: the govuk_frontend_jinja component lowercases select option values incorrectly; this breaks flask-admin enum filtering #}
 {% from 'govuk_frontend_jinja/components/tag/macro.html' import govukTag %}
 
 {% block head %}
@@ -160,41 +161,52 @@
     </div>
   {% endif %}
 
-  {# Results summary and actions #}
-  <div class="govuk-grid-row govuk-!-margin-bottom-4">
-    <div class="govuk-grid-column-two-thirds">
-      <p class="govuk-body">
-        Showing
-        {% if count is not none %}
-          {{ count }} result{{ 's' if count != 1 }}
-        {% else %}
-          results
-        {% endif %}
-      </p>
-    </div>
-    <div class="govuk-grid-column-one-third">
-      {# Page size selector #}
-      {% if can_set_page_size %}
-        {{ model_layout.page_size_form(page_size_url, admin_view.page_size_options) }}
-      {% endif %}
+  {# Bulk actions form - wrap table if actions are enabled #}
+  {% if actions %}
+    <form method="POST" action="{{ get_url('.action_view') }}" id="bulk-action-form">
+  {% endif %}
 
+  {# Results summary and actions #}
+  <div class="govuk-grid-row govuk-!-margin-bottom-0">
+    <div class="govuk-grid-column-two-thirds">
+      {% if actions %}
+        {% if action_form.csrf_token is defined and action_form.csrf_token %}
+          {{ action_form.csrf_token }}
+        {% elif csrf_token is defined and csrf_token %}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+        <input type="hidden" name="url" value="{{ return_url }}">
+
+          {% set action_items = [{"value": "", "text": "Choose an action"}] %}
+          {% for action in actions %}
+            {% set _ = action_items.append({"value": action[0], "text": action[1]}) %}
+          {% endfor %}
+
+          <div class="govuk-button-group">
+            {{ govukSelect({
+              "id": "action",
+              "name": "action",
+              "label": {"text": "With selected", "classes": "govuk-label--s govuk-visually-hidden"},
+              "formGroup": {"classes": "govuk-!-margin-bottom-0"},
+              "items": action_items
+            }) }}
+            {{ govukButton({
+              "html": "Apply to <span id='selected-count'>0</span> selected",
+              "classes": "govuk-button--secondary govuk-!-margin-bottom-0",
+              "attributes": {"id": "action-submit"}
+            }) }}
+          </div>
+      {% else %}
+        <p class="govuk-body"> </p>
+      {% endif %}
+    </div>
+    <div class="govuk-grid-column-one-third govuk-!-text-align-right">
       {# Export #}
       {% if admin_view.can_export %}
         {{ model_layout.export_options() }}
       {% endif %}
     </div>
   </div>
-
-  {# Bulk actions form - wrap table if actions are enabled #}
-  {% if actions %}
-    <form method="POST" action="{{ get_url('.action_view') }}" id="bulk-action-form">
-      {% if action_form.csrf_token is defined and action_form.csrf_token %}
-        {{ action_form.csrf_token }}
-      {% elif csrf_token is defined and csrf_token %}
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {% endif %}
-      <input type="hidden" name="url" value="{{ return_url }}">
-  {% endif %}
 
   {# Table #}
   {% block model_list_table %}
@@ -304,46 +316,37 @@
         {% endfor %}
       </tbody>
     </table>
-
-    {# Pagination #}
-    {% if num_pages and num_pages > 1 %}
-      {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
-    {% endif %}
   {% endblock %}
 
-  {# Bulk actions controls - inside the form #}
   {% if actions %}
-    {% from 'govuk_frontend_jinja/components/select/macro.html' import govukSelect %}
+  </form>
+  {% endif %}
 
-    <div class="govuk-!-margin-top-6">
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-half">
-          {% set action_items = [{"value": "", "text": "Choose an action"}] %}
-          {% for action in actions %}
-            {% set _ = action_items.append({"value": action[0], "text": action[1]}) %}
-          {% endfor %}
-
-          {{ govukSelect({
-            "id": "action",
-            "name": "action",
-            "label": {"text": "With selected:", "classes": "govuk-label--s"},
-            "items": action_items
-          }) }}
-        </div>
-      </div>
-
-      {{ govukButton({
-        "text": "Apply to selected",
-        "classes": "govuk-button--secondary",
-        "attributes": {"id": "action-submit"}
-      }) }}
-
-      <p class="govuk-body govuk-!-margin-top-2">
-        <span id="selected-count">0</span> item(s) selected
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-quarter">
+      <p class="govuk-body">
+        Showing
+        {% if count is not none %}
+          {{ count }} result{{ 's' if count != 1 }}
+        {% else %}
+          results
+        {% endif %}
       </p>
     </div>
-    </form>
-  {% endif %}
+    <div class="govuk-grid-column-one-half govuk-!-text-align-centre">
+      {# Pagination #}
+      {% if num_pages and num_pages > 1 %}
+        {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
+      {% endif %}
+    </div>
+    <div class="govuk-grid-column-one-quarter govuk-!-text-align-right">
+      {# Page size selector #}
+      {% if can_set_page_size %}
+        {{ model_layout.page_size_form(page_size_url, admin_view.page_size_options) }}
+      {% endif %}
+    </div>
+  </div>
+
 {% endblock %}
 
 {% block bodyEnd %}

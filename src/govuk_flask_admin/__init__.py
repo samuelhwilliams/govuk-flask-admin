@@ -99,6 +99,7 @@ def govuk_pagination_params_builder(page_zero_indexed, total_pages, url_generato
             last = curr
 
     component_params["items"] = items
+    component_params['classes'] = 'govuk-!-text-align-center'
 
     return component_params
 
