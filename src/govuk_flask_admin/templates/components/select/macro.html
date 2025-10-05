@@ -1,3 +1,5 @@
+ {# https://github.com/LandRegistry/govuk-frontend-jinja/issues/82: the govuk_frontend_jinja component lowercases select option values incorrectly; this breaks flask-admin enum filtering #}
+
 {% macro govukSelect(params) %}
 {% from "govuk_frontend_jinja/macros/attributes.html" import govukAttributes %}
 {% from "govuk_frontend_jinja/components/error-message/macro.html" import govukErrorMessage %}

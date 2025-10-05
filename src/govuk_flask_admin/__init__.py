@@ -10,8 +10,11 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.sqla.form import AdminModelConverter
 from flask_admin.contrib.sqla.tools import is_relationship
 from flask_admin.theme import Theme
-from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput
+from flask_admin.model.form import converts
+from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput, GovSelect
 from sqlalchemy.orm import ColumnProperty
+from wtforms import validators, SelectField
+from enum import Enum
 
 # Monkey patch for Flask-Admin fields to work with govuk_frontend_wtf widgets
 # These fields don't have _value() method which the widgets expect
@@ -42,6 +45,19 @@ except ImportError:
 
 
 ROOT_DIR = Path(__file__).parent.parent
+
+
+class GovSelect_BugFixed(GovSelect):
+    """Custom GOV.UK select widget using our custom select macro.
+
+    This fixes the lowercase bug in govuk-frontend-wtf by using our
+    own select macro template.
+
+    https://github.com/LandRegistry/govuk-frontend-jinja/issues/82:
+      the govuk_frontend_jinja component lowercases select option values incorrectly; this breaks flask-admin enum
+      filtering
+    """
+    template = "components/select/template.html"
 
 
 @dataclass
@@ -241,6 +257,28 @@ class GovukAdminModelConverter(AdminModelConverter):
 
         return None
 
+    @converts("sqlalchemy.sql.sqltypes.Enum")
+    def convert_enum(self, column, field_args, **extra):
+        """Convert Enum columns to GOV.UK select fields."""
+        # Build choices: value=enum.name (e.g., 'RED'), label=enum.value (e.g., 'red')
+        available_choices = [(e.name, e.value) for e in column.type.enum_class]
+        accepted_values = [choice[0] for choice in available_choices]
+
+        if column.nullable:
+            field_args["allow_blank"] = column.nullable
+            accepted_values.append(None)
+            # Add blank choice at the beginning
+            available_choices.insert(0, ("", ""))
+
+        self._nullable_common(column, field_args)
+
+        field_args["choices"] = available_choices
+        field_args["validators"].append(validators.AnyOf(accepted_values))
+        field_args["coerce"] = lambda v: v.name if isinstance(v, Enum) else str(v) if v else v
+        field_args["widget"] = GovSelect_BugFixed()
+
+        return SelectField(**field_args)
+
     # TODO: WIP finish fixing up error messages from wtforms
     # def convert(self, model, mapper, name, prop, field_args, hidden_pk):
     #     field = super().convert(model, mapper, name, prop, field_args, hidden_pk)
@@ -255,6 +293,11 @@ class GovukAdminModelConverter(AdminModelConverter):
 
 class GovukModelView(ModelView):
     model_form_converter = GovukAdminModelConverter
+
+    # Format enum values to show their .value (lowercase) instead of .name (uppercase)
+    column_type_formatters = {
+        Enum: lambda view, value, name: value.value if isinstance(value, Enum) else value
+    }
 
     def __init__(
         self,

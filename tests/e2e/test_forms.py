@@ -36,7 +36,7 @@ class TestFormValidation:
         page.fill('input[name="name"]', 'Test User')
         page.fill('input[name="age"]', '25')
         page.fill('input[name="job"]', 'Tester')
-        page.fill('#favourite_colour', 'RED')
+        page.select_option('#favourite_colour', 'RED')
         page.fill('#created_at-day', '15')
         page.fill('#created_at-month', '6')
         page.fill('#created_at-year', '2024')
@@ -66,7 +66,7 @@ class TestFormValidation:
         page.fill('input[name="name"]', 'Test User')
         page.fill('input[name="age"]', '25')
         page.fill('input[name="job"]', 'Tester')
-        page.fill('#favourite_colour', 'RED')
+        page.select_option('#favourite_colour', 'RED')
 
         page.click('input[type="submit"]')
 
@@ -116,7 +116,7 @@ class TestFormSubmission:
         page.fill('input[name="name"]', 'E2E Test User')
         page.fill('input[name="age"]', '30')
         page.fill('input[name="job"]', 'Tester')
-        page.fill('#favourite_colour', 'RED')
+        page.select_option('#favourite_colour', 'RED')
         page.fill('#created_at-day', '15')
         page.fill('#created_at-month', '6')
         page.fill('#created_at-year', '2024')
