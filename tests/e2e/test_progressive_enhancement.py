@@ -34,11 +34,11 @@ class TestNoJavaScript:
         page_no_js.fill('input[name="age"]', '25')
         page_no_js.fill('input[name="job"]', 'Tester')
         page_no_js.select_option('select[name="favourite_colour"]', 'RED')
-        page_no_js.fill('input[name="created_at-day"]', '1')
-        page_no_js.fill('input[name="created_at-month"]', '1')
-        page_no_js.fill('input[name="created_at-year"]', '2024')
+        page_no_js.fill('input[id="created_at-day"]', '1')
+        page_no_js.fill('input[id="created_at-month"]', '1')
+        page_no_js.fill('input[id="created_at-year"]', '2024')
 
-        page_no_js.click('button[type="submit"]')
+        page_no_js.click('input[type="submit"]')
 
         # TODO: Assert form submission worked
 
