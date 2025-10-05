@@ -120,9 +120,11 @@
     </div>
   </div>
 
-  {# Search and Filters - collapsible section #}
-  {% if search_supported or filters %}
-    {% set filter_summary %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-half">
+      {# Search and Filters - collapsible section #}
+      {% if search_supported or filters %}
+      {% set filter_summary %}
       {% if search %}
         Search active
         {% if active_filters %}
@@ -133,22 +135,22 @@
       {% else %}
         Search and filter results
       {% endif %}
-    {% endset %}
+      {% endset %}
 
-    {{ govukDetails({
+      {{ govukDetails({
       "summaryText": filter_summary,
       "html": model_layout.filter_form(),
       "open": false
     }) }}
-  {% endif %}
+      {% endif %}
 
-  {# Active filter tags (for clarity) #}
-  {% if active_filters %}
-    <div class="govuk-!-margin-bottom-4">
-      <h2 class="govuk-heading-s">Active filters</h2>
-      <div class="gfa-filter-tags">
-        {% for idx, flt_name, value in active_filters %}
-          <span class="govuk-tag govuk-!-margin-right-2 govuk-!-margin-bottom-2">
+      {# Active filter tags (for clarity) #}
+      {% if active_filters %}
+        <div class="govuk-!-margin-bottom-4">
+          <h2 class="govuk-heading-s">Active filters</h2>
+          <div class="gfa-filter-tags">
+            {% for idx, flt_name, value in active_filters %}
+              <span class="govuk-tag govuk-!-margin-right-2 govuk-!-margin-bottom-2">
             {{ flt_name }}: {{ value }}
             <a href="{{ admin_view._get_remove_filter_url(loop.index0, active_filters, return_url, sort_column, sort_desc, search, page_size, default_page_size, extra_args) }}"
                class="govuk-link govuk-link--inverse gfa-filter-tag-remove"
@@ -156,10 +158,12 @@
               ×
             </a>
           </span>
-        {% endfor %}
-      </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
     </div>
-  {% endif %}
+  </div>
 
   {# Bulk actions form - wrap table if actions are enabled #}
   {% if actions %}
