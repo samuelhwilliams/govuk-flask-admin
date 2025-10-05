@@ -70,12 +70,18 @@ def playwright_instance():
 
 
 @pytest.fixture(scope="session")
-def browser(playwright_instance):
-    """Create browser instance for session."""
-    browser = playwright_instance.chromium.launch(
-        headless=True,
-        args=['--disable-dev-shm-usage']  # Helps with Docker/CI environments
-    )
+def browser_type_launch_args(browser_type_launch_args):
+    """Override browser launch args to add custom options."""
+    return {
+        **browser_type_launch_args,
+        "args": ['--disable-dev-shm-usage'],  # Helps with Docker/CI environments
+    }
+
+
+@pytest.fixture(scope="session")
+def browser(playwright_instance, browser_type_launch_args):
+    """Create browser instance for session using pytest-playwright options."""
+    browser = playwright_instance.chromium.launch(**browser_type_launch_args)
     yield browser
     browser.close()
 
