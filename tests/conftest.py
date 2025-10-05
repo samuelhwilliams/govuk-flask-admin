@@ -2,108 +2,43 @@
 import pytest
 import datetime
 import random
-import uuid
-from flask import Flask
-from flask_admin import Admin
-from flask_sqlalchemy_lite import SQLAlchemy
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, relationship, mapped_column
-from govuk_flask_admin import GovukFrontendV5_6Theme, GovukFlaskAdmin, GovukModelView
-from govuk_frontend_wtf.main import WTFormsHelpers
-from jinja2 import PackageLoader, ChoiceLoader, PrefixLoader
-import enum
+
+# Import from app.py instead of redefining
+from app import create_app, User, Account, Base, FavouriteColour, _create_app
+
+# Store app components at module level for session scope
+_app_components = None
 
 
-class FavouriteColour(enum.Enum):
-    RED = "red"
-    BLUE = "blue"
-    YELLOW = "yellow"
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-class User(Base):
-    __tablename__ = "user"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(unique=True)
-    name: Mapped[str]
-    age: Mapped[int]
-    job: Mapped[str]
-    favourite_colour: Mapped[FavouriteColour]
-    account: Mapped["Account"] = relationship(back_populates="user", uselist=False)
-    created_at: Mapped[datetime.date]
-
-
-class Account(Base):
-    __tablename__ = "account"
-
-    id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id))
-    user: Mapped[User] = relationship(back_populates="account")
+def get_app_components():
+    """Get or create app components (app, db, admin) for testing."""
+    global _app_components
+    if _app_components is None:
+        _app_components = _create_app(config_overrides={
+            "TESTING": True,
+            "SQLALCHEMY_ENGINES": {"default": "sqlite:///:memory:"},
+        })
+    return _app_components
 
 
 @pytest.fixture(scope="session")
 def app():
-    """Create test Flask app."""
-    app = Flask(__name__)
-    app.config["SECRET_KEY"] = "test-secret-key"
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_ENGINES"] = {"default": "sqlite:///:memory:"}
-
-    # Configure Jinja2 loaders
-    app.jinja_options = {
-        "loader": ChoiceLoader([
-            PrefixLoader({"govuk_frontend_jinja": PackageLoader("govuk_frontend_jinja")}),
-            PrefixLoader({"govuk_frontend_wtf": PackageLoader("govuk_frontend_wtf")}),
-            PackageLoader("govuk_flask_admin"),
-        ])
-    }
-
+    """Create test Flask app using factory."""
+    app, db, admin = get_app_components()
     return app
 
 
 @pytest.fixture(scope="session")
 def db(app):
-    """Create test database."""
-    db = SQLAlchemy(app)
-
-    with app.app_context():
-        Base.metadata.create_all(db.engine)
-
+    """Get database instance from factory."""
+    app, db, admin = get_app_components()
     return db
 
 
 @pytest.fixture(scope="session")
-def admin_instance(app, db):
-    """Create Flask-Admin instance with GOV.UK theme and views."""
-    admin = Admin(app, theme=GovukFrontendV5_6Theme())
-    govuk_flask_admin = GovukFlaskAdmin(app, service_name="Test Admin")
-    WTFormsHelpers(app)
-
-    # Add views immediately to avoid registration after first request
-    class TestUserModelView(GovukModelView):
-        page_size = 15
-        can_set_page_size = True
-        page_size_options = [10, 15, 25, 50]
-        column_filters = ["age", "job", "email", "created_at", "favourite_colour"]
-        column_searchable_list = ["email", "name"]
-        can_export = True
-        export_types = ["csv"]
-        column_descriptions = {
-            "age": "User's age in years",
-            "email": "Email address for contacting the user",
-        }
-
-    with app.app_context():
-        user_view = TestUserModelView(User, db.session, category="Models", name="User")
-        admin.add_view(user_view)
-
-        account_view = GovukModelView(Account, db.session, category="Models", name="Account")
-        admin.add_view(account_view)
-
+def admin_instance(app):
+    """Get Flask-Admin instance from factory."""
+    app, db, admin = get_app_components()
     return admin
 
 

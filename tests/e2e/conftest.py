@@ -1,68 +1,65 @@
 """Playwright fixtures for e2e tests."""
 import pytest
-import multiprocessing
+from playwright.sync_api import sync_playwright
+import subprocess
 import time
 import requests
-from playwright.sync_api import sync_playwright
-
-
-def run_flask_app(port):
-    """Run Flask app in separate process for e2e tests."""
-    import sys
-    import os
-
-    # Add project root to path
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
-    from app import app
-
-    # Configure for testing
-    app.config['TESTING'] = True
-
-    # Run the app
-    app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
+import sys
 
 
 @pytest.fixture(scope="session")
 def flask_server():
     """Start Flask server in separate process for e2e tests.
 
-    This fixture:
-    1. Starts the Flask app in a separate process
-    2. Waits for it to be ready
-    3. Yields the base URL
-    4. Terminates the process after tests complete
+    Uses subprocess instead of pytest-flask's live_server to avoid
+    async event loop conflicts with Playwright during teardown.
+
+    Note: Does not depend on app/db/admin_instance fixtures to avoid
+    Flask context teardown issues.
     """
-    port = 5555
-    base_url = f"http://127.0.0.1:{port}"
+    port = 5555  # Use fixed port for testing
 
-    # Start Flask in separate process
-    process = multiprocessing.Process(
-        target=run_flask_app,
-        args=(port,),
-        daemon=True
+    # Create a simple runner script
+    runner_code = f"""
+import sys
+sys.path.insert(0, '{sys.path[0]}')
+from app import _create_app
+
+app, admin, db = _create_app(config_overrides={{
+    'TESTING': True,
+    'SQLALCHEMY_ENGINES': {{'default': 'sqlite:///:memory:'}},
+}})
+app.run(host='127.0.0.1', port={port}, debug=False, use_reloader=False)
+"""
+
+    # Start server in subprocess
+    server_process = subprocess.Popen(
+        [sys.executable, '-c', runner_code],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
     )
-    process.start()
 
-    # Wait for server to be ready (max 30 seconds)
-    for _ in range(30):
+    # Wait for server to be ready
+    base_url = f"http://127.0.0.1:{port}"
+    for _ in range(50):  # Try for 5 seconds
         try:
-            response = requests.get(base_url, timeout=1)
-            if response.status_code:
-                break
+            requests.get(f"{base_url}/admin/", timeout=1)
+            break
         except (requests.ConnectionError, requests.Timeout):
-            time.sleep(1)
+            time.sleep(0.1)
     else:
-        process.terminate()
-        raise RuntimeError("Flask server failed to start within 30 seconds")
+        stdout, stderr = server_process.communicate(timeout=1)
+        server_process.kill()
+        raise RuntimeError(f"Flask server failed to start. stderr: {stderr.decode()}")
 
     yield base_url
 
     # Cleanup
-    process.terminate()
-    process.join(timeout=5)
-    if process.is_alive():
-        process.kill()
+    server_process.terminate()
+    try:
+        server_process.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        server_process.kill()
 
 
 @pytest.fixture(scope="session")
