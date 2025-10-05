@@ -284,6 +284,64 @@ class GovukModelView(ModelView):
             menu_icon_value=menu_icon_value,
         )
 
+    def _get_list_filter_args(self):
+        """
+        Override to combine GOV.UK date input fields before processing filters.
+
+        GOV.UK date inputs create three separate fields with -day, -month, -year suffixes.
+        Flask-Admin expects a single field with YYYY-MM-DD format. This method intercepts
+        the request parameters and combines the GOV.UK date fields before passing them to
+        Flask-Admin's filter processing.
+        """
+        from flask import request
+        from werkzeug.datastructures import ImmutableMultiDict
+
+        # Build modified args dict
+        modified = {}
+        for key in request.args.keys():
+            # Get all values for this key (handles multi-value params)
+            values = request.args.getlist(key)
+            if len(values) == 1:
+                modified[key] = values[0]
+            else:
+                modified[key] = values
+
+        # Find and combine GOV.UK date fields
+        # Look for fields ending with -day that start with 'flt'
+        for arg in request.args:
+            if arg.startswith('flt') and arg.endswith('-day'):
+                base = arg[:-4]  # Remove '-day' suffix
+                month_key = base + '-month'
+                year_key = base + '-year'
+
+                if month_key in request.args and year_key in request.args:
+                    day = request.args[arg].strip()
+                    month = request.args[month_key].strip()
+                    year = request.args[year_key].strip()
+
+                    # Only combine if all three parts are present
+                    if day and month and year:
+                        # Create YYYY-MM-DD format, padding day and month to 2 digits
+                        modified[base] = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+
+                        # Remove the individual component fields so they don't interfere
+                        modified.pop(arg, None)
+                        modified.pop(month_key, None)
+                        modified.pop(year_key, None)
+
+        # Temporarily replace request.args with modified version
+        original_args = request.args
+        request.args = ImmutableMultiDict(modified)
+
+        try:
+            # Call parent implementation with modified request.args
+            result = super()._get_list_filter_args()
+        finally:
+            # Restore original request.args
+            request.args = original_args
+
+        return result
+
     def _get_remove_filter_url(
         self,
         filter_position,
