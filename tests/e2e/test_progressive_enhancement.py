@@ -18,18 +18,19 @@ class TestNoJavaScript:
         yield page
         context.close()
 
-    def test_sidebar_visible_without_js(self, page_no_js):
-        """Test sidebar is visible when JS disabled."""
+    def test_navigation_visible_without_js(self, page_no_js):
+        """Test navigation is visible when JS disabled."""
         page_no_js.goto(f"{page_no_js.base_url}/admin/user/")
         page_no_js.wait_for_selector('.govuk-table')
 
-        sidebar = page_no_js.locator('.gfa-sidebar')
-        assert sidebar.count() > 0, "Expected sidebar element"
+        # Check navigation exists in the one-quarter column
+        nav = page_no_js.locator('.govuk-grid-column-one-quarter nav')
+        assert nav.count() > 0, "Expected navigation element"
 
-        # Sidebar should be visible (not hidden by default)
+        # Navigation should be visible (not hidden by default)
         # In a mobile-first approach, it may not be "visible" in the viewport sense
         # but the element should exist in the DOM
-        assert sidebar.count() > 0, "Sidebar should be present in DOM without JS"
+        assert nav.count() > 0, "Navigation should be present in DOM without JS"
 
     def test_forms_submit_without_js(self, page_no_js):
         """Test forms work without JavaScript."""

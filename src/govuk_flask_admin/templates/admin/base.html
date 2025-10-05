@@ -2,7 +2,7 @@
 {% from 'govuk_frontend_jinja/components/service-navigation/macro.html' import govukServiceNavigation %}
 {% import 'admin/layout.html' as layout with context %}
 
-{% set containerClasses = 'gfa-width-container--wide' %}
+{% set containerClasses = '' %}
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 {% set assetPath = url_for('govuk_flask_admin.static', filename='assets').rstrip('/') %}
 
@@ -16,8 +16,8 @@
 
 {% block main %}
   <div class="govuk-width-container {%- if containerClasses %} {{ containerClasses }}{% endif %}">
-    <div class="govuk-grid-row gfa-grid-row--sidebar">
-      <div class="govuk-grid-column-one-quarter gfa-grid-column--sidebar">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-quarter govuk-!-padding-top-5">
         {% block main_menu %}
           {{ layout.menu() }}
         {% endblock %}

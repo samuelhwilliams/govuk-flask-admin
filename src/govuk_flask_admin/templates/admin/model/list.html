@@ -214,7 +214,7 @@
 
   {# Table #}
   {% block model_list_table %}
-    <table class="govuk-table">
+    <table class="govuk-table govuk-!-margin-bottom-2">
       <caption class="govuk-table__caption govuk-visually-hidden">
         {{ admin_view.name }} entries
       </caption>
@@ -222,7 +222,7 @@
         <tr class="govuk-table__row">
           {# Bulk actions checkbox #}
           {% if actions %}
-            <th scope="col" class="govuk-table__header" style="width: 50px;">
+            <th scope="col" class="govuk-table__header gfa-table__header--checkbox">
               <div class="govuk-checkboxes govuk-checkboxes--small">
                 <div class="govuk-checkboxes__item">
                   <input class="govuk-checkboxes__input"
@@ -261,7 +261,7 @@
               {% endif %}
 
               {% if admin_view.column_descriptions.get(c) %}
-                <span class="govuk-hint govuk-!-font-size-14 govuk-!-margin-top-1" style="display: block;">
+                <span class="gfa-table__header--hint">
                   {{ admin_view.column_descriptions[c] }}
                 </span>
               {% endif %}
@@ -275,7 +275,7 @@
           <tr class="govuk-table__row">
             {# Bulk action checkbox #}
             {% if actions %}
-              <td class="govuk-table__cell">
+              <td class="govuk-table__cell gfa-table__cell--compact">
                 <div class="govuk-checkboxes govuk-checkboxes--small">
                   <div class="govuk-checkboxes__item">
                     <input class="govuk-checkboxes__input action-checkbox"
@@ -328,7 +328,7 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-one-quarter">
-      <p class="govuk-body">
+      <p class="govuk-body govuk-!-margin-top-2">
         Showing
         {% if count is not none %}
           {{ count }} result{{ 's' if count != 1 }}

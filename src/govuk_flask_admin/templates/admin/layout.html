@@ -2,55 +2,51 @@
   {% set is_main_nav = menu_root == None %}
   {% if menu_root is none %}{% set menu_root = admin_view.admin.menu() %}{% endif %}
 
-  <div class="gfa-sidebar">
-    <div class="gfa-sidebar__container govuk-!-padding-top-5 govuk-!-padding-left-5">
-      <nav class="gfa-sidebar__nav">
-        <ul class="govuk-list">
-        {%- for item in menu_root %}
-          {%- if item.is_category() -%}
-            {% set children = item.get_children() %}
-            {%- if children %}
-              <h2 class="gfa-sidebar__theme">{{ item.name }}</h2>
-              <ul class="gfa-sidebar__section">
-              {%- for child in children -%}
-                {%- if child.is_category() -%}
-                  {# THIS IS PROBABLY NOT SUPPORTED PROPERLY #}
-                  {{ menu(menu_root=[child]) }}
+  <nav>
+    <ul class="govuk-list">
+    {%- for item in menu_root %}
+      {%- if item.is_category() -%}
+        {% set children = item.get_children() %}
+        {%- if children %}
+          <h2 class="govuk-heading-s govuk-!-margin-top-4">{{ item.name }}</h2>
+          <ul class="govuk-list govuk-!-margin-bottom-4">
+          {%- for child in children -%}
+            {%- if child.is_category() -%}
+              {# THIS IS PROBABLY NOT SUPPORTED PROPERLY #}
+              {{ menu(menu_root=[child]) }}
 
-                {% else %}
-                  <li class="gfa-sidebar__section-item{% if child.is_active(admin_view) %} gfa-sidebar__section-item--current{% endif %}">
-                    <a
-                      class="gfa-sidebar__link govuk-link govuk-link--no-visited-state govuk-link--no-underline"
-                      href="{{ child.get_url() }}"
-                      {% if child.target %}target="{{ child.target }}"{% endif %}
-                    >
-                      {{ child.name }}
-                    </a>
-                  </li>
-                {%- endif %}
-              {%- endfor %}
-              </ul>
-            </li>
-            {% endif %}
-          {%- else %}
-            {%- if item.is_accessible() and item.is_visible() -%}
-              {% set class_name = item.get_class_name() %}
-              <li class="gfa-sidebar__section-item{% if item.is_active(admin_view) %} gfa-sidebar__section-item--current{% endif %}">
+            {% else %}
+              <li>
                 <a
-                  class="gfa-sidebar__link govuk-link govuk-link--no-visited-state govuk-link--no-underline"
-                  href="{{ item.get_url() }}"
-                  {% if item.target %} target="{{ item.target }}"{% endif %}
+                  class="govuk-link govuk-link--no-visited-state{% if child.is_active(admin_view) %} govuk-!-font-weight-bold{% endif %}"
+                  href="{{ child.get_url() }}"
+                  {% if child.target %}target="{{ child.target }}"{% endif %}
                 >
-                  {{ item.name }}
+                  {{ child.name }}
                 </a>
-            </li>
-            {%- endif -%}
-          {% endif -%}
-        {% endfor %}
-        </ul>
-      </nav>
-    </div>
-  </div>
+              </li>
+            {%- endif %}
+          {%- endfor %}
+          </ul>
+        </li>
+        {% endif %}
+      {%- else %}
+        {%- if item.is_accessible() and item.is_visible() -%}
+          {% set class_name = item.get_class_name() %}
+          <li>
+            <a
+              class="govuk-link govuk-link--no-visited-state{% if item.is_active(admin_view) %} govuk-!-font-weight-bold{% endif %}"
+              href="{{ item.get_url() }}"
+              {% if item.target %} target="{{ item.target }}"{% endif %}
+            >
+              {{ item.name }}
+            </a>
+        </li>
+        {%- endif -%}
+      {% endif -%}
+    {% endfor %}
+    </ul>
+  </nav>
 {% endmacro %}
 
 {% macro menu_links(links=None) %}

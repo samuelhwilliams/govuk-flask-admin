@@ -3,11 +3,30 @@
 $govuk-new-organisation-colours: true;
 $govuk-assets-path: "assets/";
 $govuk-brand-colour: #00625e;
+$govuk-page-width: 1920px;
 
 @import "../../node_modules/govuk-frontend/dist/govuk";
 @import "../../node_modules/accessible-autocomplete";
 
-@import 'components/wide-container';
-@import 'components/sidebar';
 @import 'components/sort-buttons';
 @import 'components/filters';
+
+.gfa-table__cell--compact {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.gfa-table__header--checkbox {
+  @include govuk-responsive-padding($direction: "top", $responsive-spacing-point: 0);
+  width: 50px;
+}
+
+.gfa-table__header--hint {
+  @include govuk-font-size($size: 16);
+  @include govuk-typography-weight-regular();
+  @include govuk-responsive-margin($direction: "top", $responsive-spacing-point: 1);
+  @include govuk-responsive-margin($direction: "bottom", $responsive-spacing-point: 0);
+  color: $govuk-secondary-text-colour;
+
+  display: block;
+}

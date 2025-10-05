@@ -138,7 +138,7 @@ class TestMyFeature:
     def test_desktop_layout(self, page):
         """Test on desktop viewport."""
         page.goto(f"{page.base_url}/admin/user/")
-        assert page.locator('.gfa-sidebar').is_visible()
+        assert page.locator('.govuk-grid-column-one-quarter nav').is_visible()
 
     def test_mobile_layout(self, mobile_page):
         """Test on mobile viewport."""
