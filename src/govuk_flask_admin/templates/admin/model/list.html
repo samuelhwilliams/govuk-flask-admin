@@ -120,25 +120,25 @@
     </div>
   </div>
 
-  {# Search #}
-  {% if search_supported %}
-    {{ model_layout.search_form() }}
-  {% endif %}
-
-  {# Filters - collapsible section #}
-  {% if filters %}
+  {# Search and Filters - collapsible section #}
+  {% if search_supported or filters %}
     {% set filter_summary %}
-      {% if active_filters %}
+      {% if search %}
+        Search active
+        {% if active_filters %}
+          , {{ active_filters|length }} filter{{ 's' if active_filters|length != 1 }}
+        {% endif %}
+      {% elif active_filters %}
         {{ active_filters|length }} filter{{ 's' if active_filters|length != 1 }} active
       {% else %}
-        Add filters to narrow results
+        Search and filter results
       {% endif %}
     {% endset %}
 
     {{ govukDetails({
       "summaryText": filter_summary,
       "html": model_layout.filter_form(),
-      "open": active_filters|length > 0
+      "open": (active_filters|length > 0) or search
     }) }}
   {% endif %}
 

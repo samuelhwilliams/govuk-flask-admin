@@ -152,11 +152,25 @@
   {% if sort_desc %}
     <input type="hidden" name="desc" value="1">
   {% endif %}
-  {% if search %}
-    <input type="hidden" name="search" value="{{ search }}">
-  {% endif %}
   {% if page_size != default_page_size %}
     <input type="hidden" name="page_size" value="{{ page_size }}">
+  {% endif %}
+
+  {# Search box at top of filter form #}
+  {% if search_supported %}
+    {{ govukInput({
+      "id": "search",
+      "name": "search",
+      "type": "search",
+      "label": {
+        "text": "Search",
+        "classes": "govuk-label--s"
+      },
+      "hint": {
+        "text": search_placeholder if search_placeholder else "Search records"
+      },
+      "value": search if search else ""
+    }) }}
   {% endif %}
 
   {# Render filter groups #}
@@ -190,12 +204,12 @@
   {# Submit buttons #}
   <div class="govuk-button-group">
     {{ govukButton({
-      "text": "Apply filters",
+      "text": "Apply" if search_supported and filters else ("Search" if search_supported else "Apply filters"),
       "preventDoubleClick": true
     }) }}
-    {% if active_filters %}
+    {% if active_filters or search %}
       <a href="{{ clear_search_url }}" class="govuk-link govuk-link--no-visited-state">
-        Reset all filters
+        Clear all
       </a>
     {% endif %}
   </div>
