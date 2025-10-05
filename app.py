@@ -119,7 +119,7 @@ def _create_app(config_overrides=None):
 
     seed_database(app, db)
 
-    return app, admin, db
+    return app, db, admin
 
 
 def create_app(config_overrides=None):
