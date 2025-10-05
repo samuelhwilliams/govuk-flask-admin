@@ -120,97 +120,130 @@
     </div>
   </div>
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-half">
-      {# Search and Filters - collapsible section #}
+  {# MOJ Filter Layout #}
+  <div class="moj-filter-layout">
+    <div class="moj-filter-layout__filter">
       {% if search_supported or filters %}
-      {% set filter_summary %}
-      {% if search %}
-        Search active
-        {% if active_filters %}
-          , {{ active_filters|length }} filter{{ 's' if active_filters|length != 1 }}
-        {% endif %}
-      {% elif active_filters %}
-        {{ active_filters|length }} filter{{ 's' if active_filters|length != 1 }} active
-      {% else %}
-        Search and filter results
-      {% endif %}
-      {% endset %}
-
-      {{ govukDetails({
-      "summaryText": filter_summary,
-      "html": model_layout.filter_form(),
-      "open": false
-    }) }}
-      {% endif %}
-
-      {# Active filter tags (for clarity) #}
-      {% if active_filters %}
-        <div class="govuk-!-margin-bottom-4">
-          <h2 class="govuk-heading-s">Active filters</h2>
-          <div class="gfa-filter-tags">
-            {% for idx, flt_name, value in active_filters %}
-              <span class="govuk-tag govuk-!-margin-right-2 govuk-!-margin-bottom-2">
-            {{ flt_name }}: {{ value }}
-            <a href="{{ admin_view._get_remove_filter_url(loop.index0, active_filters, return_url, sort_column, sort_desc, search, page_size, default_page_size, extra_args) }}"
-               class="govuk-link govuk-link--inverse gfa-filter-tag-remove"
-               aria-label="Remove {{ flt_name }} filter">
-              ×
-            </a>
-          </span>
-            {% endfor %}
+      <div class="moj-filter" data-module="moj-filter">
+        <div class="moj-filter__header">
+          <div class="moj-filter__header-title">
+            <h2 class="govuk-heading-m">Filter</h2>
+          </div>
+          <div class="moj-filter__header-action">
           </div>
         </div>
+        <div class="moj-filter__content">
+          {# Selected filters section #}
+          {% if active_filters or search %}
+          <div class="moj-filter__selected">
+            <div class="moj-filter__selected-heading">
+              <div class="moj-filter__heading-title">
+                <h2 class="govuk-heading-m">Selected filters</h2>
+              </div>
+              <div class="moj-filter__heading-action">
+                <p><a class="govuk-link govuk-link--no-visited-state" href="{{ clear_search_url }}">Clear filters</a></p>
+              </div>
+            </div>
+
+            {# Search filter tag #}
+            {% if search %}
+            <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Search</h3>
+            <ul class="moj-filter-tags">
+              <li>
+                <a class="moj-filter__tag" href="{{ clear_search_url }}">
+                  <span class="govuk-visually-hidden">Remove this filter</span>
+                  {{ search }}
+                </a>
+              </li>
+            </ul>
+            {% endif %}
+
+            {# Active filter tags grouped by filter name #}
+            {% if active_filters %}
+              {% set ns = namespace(current_filter_name='') %}
+              {% for idx, flt_name, value in active_filters %}
+                {% if ns.current_filter_name != flt_name %}
+                  {% if ns.current_filter_name != '' %}
+                    </ul>
+                  {% endif %}
+                  {% set ns.current_filter_name = flt_name %}
+                  <h3 class="govuk-heading-s govuk-!-margin-bottom-0">{{ flt_name }}</h3>
+                  <ul class="moj-filter-tags">
+                {% endif %}
+                <li>
+                  <a class="moj-filter__tag" href="{{ admin_view._get_remove_filter_url(loop.index0, active_filters, return_url, sort_column, sort_desc, search, page_size, default_page_size, extra_args) }}">
+                    <span class="govuk-visually-hidden">Remove this filter</span>
+                    {{ value }}
+                  </a>
+                </li>
+                {% if loop.last %}
+                  </ul>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {# Filter options #}
+          <div class="moj-filter__options">
+            {{ model_layout.filter_form() }}
+          </div>
+        </div>
+      </div>
       {% endif %}
     </div>
-  </div>
 
-  {# Bulk actions form - wrap table if actions are enabled #}
-  {% if actions %}
-    <form method="POST" action="{{ get_url('.action_view') }}" id="bulk-action-form">
-  {% endif %}
+    <div class="moj-filter-layout__content">
+      <div class="moj-action-bar">
+        <div class="moj-action-bar__filter">
+          {# Filter toggle button created by FilterToggleButton JS #}
+        </div>
 
-  {# Results summary and actions #}
-  <div class="govuk-grid-row govuk-!-margin-bottom-0">
-    <div class="govuk-grid-column-two-thirds">
-      {% if actions %}
-        {% if action_form.csrf_token is defined and action_form.csrf_token %}
-          {{ action_form.csrf_token }}
-        {% elif csrf_token is defined and csrf_token %}
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {% endif %}
-        <input type="hidden" name="url" value="{{ return_url }}">
-
+        {% if actions %}
           {% set action_items = [{"value": "", "text": "Choose an action"}] %}
           {% for action in actions %}
             {% set _ = action_items.append({"value": action[0], "text": action[1]}) %}
           {% endfor %}
 
-          <div class="govuk-button-group">
+          <div class="moj-button-group">
             {{ govukSelect({
               "id": "action",
               "name": "action",
               "label": {"text": "With selected", "classes": "govuk-label--s govuk-visually-hidden"},
               "formGroup": {"classes": "govuk-!-margin-bottom-0"},
-              "items": action_items
+              "items": action_items,
+              "attributes": {"form": "bulk-action-form"}
             }) }}
             {{ govukButton({
               "html": "Apply to <span id='selected-count'>0</span> selected",
               "classes": "govuk-button--secondary govuk-!-margin-bottom-0",
-              "attributes": {"id": "action-submit"}
+              "attributes": {"id": "action-submit", "form": "bulk-action-form"}
             }) }}
           </div>
-      {% else %}
-        <p class="govuk-body"> </p>
+        {% endif %}
+      </div>
+
+      {# Bulk actions form - wrap table if actions are enabled #}
+      {% if actions %}
+        <form method="POST" action="{{ get_url('.action_view') }}" id="bulk-action-form">
+          {% if action_form.csrf_token is defined and action_form.csrf_token %}
+            {{ action_form.csrf_token }}
+          {% elif csrf_token is defined and csrf_token %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% endif %}
+          <input type="hidden" name="url" value="{{ return_url }}">
       {% endif %}
-    </div>
-    <div class="govuk-grid-column-one-third govuk-!-text-align-right">
-      {# Export #}
-      {% if admin_view.can_export %}
-        {{ model_layout.export_options() }}
-      {% endif %}
-    </div>
-  </div>
+
+      <div class="govuk-grid-row govuk-!-margin-bottom-0">
+        <div class="govuk-grid-column-two-thirds">
+        </div>
+        <div class="govuk-grid-column-one-third govuk-!-text-align-right">
+          {# Export #}
+          {% if admin_view.can_export %}
+            {{ model_layout.export_options() }}
+          {% endif %}
+        </div>
+      </div>
 
   {# Table #}
   {% block model_list_table %}
@@ -322,10 +355,6 @@
     </table>
   {% endblock %}
 
-  {% if actions %}
-  </form>
-  {% endif %}
-
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-one-quarter">
       <p class="govuk-body govuk-!-margin-top-2">
@@ -350,6 +379,13 @@
       {% endif %}
     </div>
   </div>
+
+  {% if actions %}
+  </form>
+  {% endif %}
+
+  </div> {# end moj-filter-layout__content #}
+  </div> {# end moj-filter-layout #}
 
 {% endblock %}
 

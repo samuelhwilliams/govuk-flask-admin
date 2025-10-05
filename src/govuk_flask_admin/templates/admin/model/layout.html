@@ -141,7 +141,13 @@
 
 {# Main filter form - works without JavaScript #}
 {% macro filter_form() %}
-<form id="filter_form" method="GET" action="{{ return_url }}" class="govuk-!-margin-bottom-6">
+<form id="filter_form" method="GET" action="{{ return_url }}">
+  {# Submit button #}
+  {{ govukButton({
+    "text": "Apply filters",
+    "preventDoubleClick": true,
+  }) }}
+
   {# Preserve existing query state #}
   {% for arg_name, arg_value in extra_args.items() %}
     <input type="hidden" name="{{ arg_name }}" value="{{ arg_value }}">
@@ -164,13 +170,12 @@
       "type": "search",
       "label": {
         "text": "Search",
-        "classes": "govuk-label--s"
+        "classes": "govuk-label--m govuk-!-margin-bottom-0"
       },
       "hint": {
-        "text": search_placeholder if search_placeholder else "Search records"
+        "text": ("In " ~ search_placeholder) if search_placeholder else "Search records"
       },
       "value": search if search else "",
-      "classes": "govuk-!-width-one-half"
     }) }}
   {% endif %}
 
@@ -201,19 +206,6 @@
       {% endfor %}
     {% endif %}
   {% endif %}
-
-  {# Submit buttons #}
-  <div class="govuk-button-group">
-    {{ govukButton({
-      "text": "Apply" if search_supported and filters else ("Search" if search_supported else "Apply filters"),
-      "preventDoubleClick": true
-    }) }}
-    {% if active_filters or search %}
-      <a href="{{ clear_search_url }}" class="govuk-link govuk-link--no-visited-state">
-        Clear all
-      </a>
-    {% endif %}
-  </div>
 </form>
 {% endmacro %}
 
