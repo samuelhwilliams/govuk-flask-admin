@@ -25,6 +25,7 @@ export default defineConfig({
           "slash-div",
           "import",
         ],
+        includePaths: [path.join(__dirname, "node_modules")],
       },
     },
   },

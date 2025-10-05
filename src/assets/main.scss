@@ -6,6 +6,7 @@ $govuk-brand-colour: #00625e;
 $govuk-page-width: 1920px;
 
 @import "../../node_modules/govuk-frontend/dist/govuk";
+@import "../../node_modules/@ministryofjustice/frontend/moj/moj-frontend.min.css";
 @import "../../node_modules/accessible-autocomplete";
 
 @import 'components/sort-buttons';

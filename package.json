@@ -8,8 +8,10 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@ministryofjustice/frontend": "^6.0.0",
     "accessible-autocomplete": "3.0.1",
-    "govuk-frontend": "^5.12.0"
+    "govuk-frontend": "^5.12.0",
+    "moment": "^2.30.1"
   },
   "devDependencies": {
     "prettier": "3.6.2",
