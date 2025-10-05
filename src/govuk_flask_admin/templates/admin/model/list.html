@@ -138,7 +138,7 @@
     {{ govukDetails({
       "summaryText": filter_summary,
       "html": model_layout.filter_form(),
-      "open": (active_filters|length > 0) or search
+      "open": false
     }) }}
   {% endif %}
 
