@@ -50,7 +50,8 @@ class TestFormValidation:
         email_error = page.locator('#email-error')
         assert email_error.is_visible(), "Expected email format validation error"
         error_text = email_error.text_content()
-        assert "email" in error_text.lower() or "invalid" in error_text.lower(), f"Unexpected error text: {error_text}"
+        assert "Invalid email address." in error_text, \
+            f"Expected 'Invalid email address.' error, got: {error_text}"
 
     def test_date_input_validation(self, page):
         """Test date input validates day/month/year."""
@@ -123,16 +124,72 @@ class TestFormSubmission:
 
         page.click('input[type="submit"]')
 
-        # TODO: Assert redirected to list view
-        # TODO: Assert success message
-        # TODO: Assert new record visible
+        # Assert redirected to list view
+        page.wait_for_load_state('networkidle')
+        assert '/admin/user/' in page.url, "Expected redirect to list view"
+        assert '/admin/user/new/' not in page.url, "Should not remain on create page"
+
+        # Assert success message displayed
+        success_banner = page.locator('.govuk-notification-banner--success')
+        assert success_banner.is_visible(), "Expected success notification banner"
+        success_text = success_banner.text_content()
+        assert "Record was successfully created." in success_text, \
+            f"Expected 'Record was successfully created.' message, got: {success_text}"
+
+        # Assert new record visible in list
+        table_rows = page.locator('.govuk-table__body .govuk-table__row')
+        # Check that at least one row contains the new user's email
+        found_new_user = False
+        for i in range(table_rows.count()):
+            row_text = table_rows.nth(i).text_content()
+            if 'e2e-test@example.com' in row_text:
+                found_new_user = True
+                break
+        assert found_new_user, "Expected to find newly created user in list view"
 
     def test_edit_form_submission(self, page):
         """Test successful record update via form."""
-        # TODO: Navigate to edit form
-        # TODO: Update fields
-        # TODO: Submit
-        # TODO: Assert success
+        # Navigate to list view first to find an existing record
+        page.goto(f"{page.base_url}/admin/user/")
+        page.wait_for_selector('.govuk-table')
+
+        # Click first edit link
+        edit_link = page.locator('a:has-text("Edit")').first
+        edit_link.click()
+
+        # Wait for edit form to load
+        page.wait_for_load_state('networkidle')
+        assert '/admin/user/edit/' in page.url, "Expected to be on edit page"
+
+        # Update fields with new values
+        page.fill('input[name="name"]', 'Updated E2E User')
+        page.fill('input[name="age"]', '35')
+        page.fill('input[name="job"]', 'Senior Tester')
+
+        # Submit the form
+        page.click('input[type="submit"]')
+
+        # Assert redirected to list view
+        page.wait_for_load_state('networkidle')
+        assert '/admin/user/' in page.url, "Expected redirect to list view"
+        assert '/admin/user/edit/' not in page.url, "Should not remain on edit page"
+
+        # Assert success message
+        success_banner = page.locator('.govuk-notification-banner--success')
+        assert success_banner.is_visible(), "Expected success notification banner"
+        success_text = success_banner.text_content()
+        assert "Record was successfully saved." in success_text, \
+            f"Expected 'Record was successfully saved.' message, got: {success_text}"
+
+        # Assert updated record visible in list
+        table_rows = page.locator('.govuk-table__body .govuk-table__row')
+        found_updated_user = False
+        for i in range(table_rows.count()):
+            row_text = table_rows.nth(i).text_content()
+            if 'Updated E2E User' in row_text and 'Senior Tester' in row_text:
+                found_updated_user = True
+                break
+        assert found_updated_user, "Expected to find updated user data in list view"
 
 
 @pytest.mark.e2e
@@ -142,17 +199,54 @@ class TestFormComponents:
     def test_govuk_input_classes(self, page):
         """Test text inputs have GOV.UK classes."""
         page.goto(f"{page.base_url}/admin/user/new/")
-        inputs = page.locator('.govuk-input')
-        # TODO: Assert inputs have correct classes
+
+        # Assert text input fields have GOV.UK classes
+        text_inputs = page.locator('input.govuk-input[type="text"], input.govuk-input[type="email"]')
+        assert text_inputs.count() > 0, "Expected text/email inputs with GOV.UK classes"
+
+        # Verify specific fields have the class
+        email_input = page.locator('input[name="email"]')
+        assert 'govuk-input' in email_input.get_attribute('class'), "Email input should have govuk-input class"
+
+        name_input = page.locator('input[name="name"]')
+        assert 'govuk-input' in name_input.get_attribute('class'), "Name input should have govuk-input class"
+
+        age_input = page.locator('input[name="age"]')
+        assert 'govuk-input' in age_input.get_attribute('class'), "Age input should have govuk-input class"
+
+        # Assert form groups exist for inputs
+        form_groups = page.locator('.govuk-form-group')
+        assert form_groups.count() > 0, "Expected form groups with GOV.UK classes"
 
     def test_govuk_select_classes(self, page):
         """Test select dropdowns have GOV.UK classes."""
         page.goto(f"{page.base_url}/admin/user/new/")
-        selects = page.locator('.govuk-select')
-        # TODO: Assert selects have correct classes
+
+        # Assert select dropdowns have GOV.UK classes
+        selects = page.locator('select.govuk-select')
+        assert selects.count() > 0, "Expected select elements with GOV.UK classes"
+
+        # Verify the favourite_colour enum select has the class
+        colour_select = page.locator('select[id="favourite_colour"]')
+        assert colour_select.count() > 0, "Expected favourite_colour select field"
+        assert 'govuk-select' in colour_select.get_attribute('class'), "Select should have govuk-select class"
+
+        # Assert select has proper options
+        options = colour_select.locator('option')
+        assert options.count() >= 3, "Expected at least 3 colour options (plus possibly blank)"
 
     def test_govuk_button_classes(self, page):
         """Test buttons have GOV.UK classes."""
         page.goto(f"{page.base_url}/admin/user/new/")
+
+        # Assert submit button has GOV.UK classes
         buttons = page.locator('.govuk-button')
-        # TODO: Assert buttons have correct classes
+        assert buttons.count() > 0, "Expected buttons with GOV.UK classes"
+
+        # Verify submit button specifically
+        submit_button = page.locator('input[type="submit"].govuk-button')
+        assert submit_button.count() > 0, "Expected submit button with govuk-button class"
+
+        # Check button is visible and clickable
+        assert submit_button.is_visible(), "Submit button should be visible"
+        assert submit_button.is_enabled(), "Submit button should be enabled"
