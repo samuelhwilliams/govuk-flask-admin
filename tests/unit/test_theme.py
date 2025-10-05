@@ -1,6 +1,6 @@
-"""Unit tests for GovukFrontendV5_6Theme."""
+"""Unit tests for GovukFrontendTheme."""
 import pytest
-from govuk_flask_admin import GovukFrontendV5_6Theme
+from govuk_flask_admin import GovukFrontendTheme
 
 
 @pytest.mark.unit
@@ -9,10 +9,10 @@ class TestGovukTheme:
 
     def test_theme_folder(self):
         """Test theme uses correct template folder."""
-        theme = GovukFrontendV5_6Theme()
+        theme = GovukFrontendTheme()
         assert theme.folder == "admin"
 
     def test_theme_base_template(self):
         """Test theme uses correct base template."""
-        theme = GovukFrontendV5_6Theme()
+        theme = GovukFrontendTheme()
         assert theme.base_template == "admin/base.html"

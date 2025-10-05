@@ -12,7 +12,7 @@ import faker
 from flask import Flask
 from flask_admin import Admin
 from flask_sqlalchemy_lite import SQLAlchemy
-from govuk_flask_admin import GovukFrontendV5_6Theme, GovukFlaskAdmin, GovukModelView
+from govuk_flask_admin import GovukFrontendTheme, GovukFlaskAdmin, GovukModelView
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import PackageLoader, ChoiceLoader, PrefixLoader
 from sqlalchemy import ForeignKey
@@ -106,8 +106,8 @@ def _create_app(config_overrides=None):
     }
 
     # Initialize extensions
-    admin = Admin(app, theme=GovukFrontendV5_6Theme())
-    govuk_flask_admin = GovukFlaskAdmin(app, service_name="GDS Flask Admin")
+    admin = Admin(app, theme=GovukFrontendTheme())
+    govuk_flask_admin = GovukFlaskAdmin(app, service_name="Gov Design System - Flask Admin")
     WTFormsHelpers(app)
     db = SQLAlchemy(app)
 

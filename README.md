@@ -9,7 +9,7 @@ from flask import Flask
 from jinja2 import PackageLoader, ChoiceLoader, PrefixLoader
 
 from flask_admin import Admin
-from govuk_flask_admin import GovukFlaskAdmin, GovukFrontendV5_6Theme
+from govuk_flask_admin import GovukFlaskAdmin, GovukFrontendTheme
 
 app = Flask(...)
 app.jinja_options = {
@@ -22,7 +22,7 @@ app.jinja_options = {
     )
 }
 
-admin = Admin(app, theme=GovukFrontendV5_6Theme())
+admin = Admin(app, theme=GovukFrontendTheme())
 govuk_flask_admin = GovukFlaskAdmin(app)
 ```
 

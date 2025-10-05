@@ -344,6 +344,7 @@ dependencies = [
     { name = "email-validator" },
     { name = "flask" },
     { name = "flask-admin" },
+    { name = "govuk-frontend-jinja" },
     { name = "govuk-frontend-wtf" },
 ]
 
@@ -364,7 +365,8 @@ requires-dist = [
     { name = "email-validator", specifier = ">=2.3.0" },
     { name = "flask", specifier = ">=3" },
     { name = "flask-admin", git = "https://github.com/flask-admin/flask-admin?branch=master" },
-    { name = "govuk-frontend-wtf", specifier = ">=3.1.0" },
+    { name = "govuk-frontend-jinja", specifier = "==3.7.0" },
+    { name = "govuk-frontend-wtf", specifier = "==3.2.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -381,14 +383,14 @@ dev = [
 
 [[package]]
 name = "govuk-frontend-jinja"
-version = "3.4.0"
+version = "3.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/cc/258f63af5304fe4ef0352ea6643d8038ece91b76021e2297175f5aaaa066/govuk_frontend_jinja-3.4.0.tar.gz", hash = "sha256:26f34d47a4fe7447078bb6fbe8e9923fa0f5bd9c56230605e5a150e28c1c76d2", size = 33259, upload-time = "2024-10-15T11:06:26.043Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/31/d3c5418aaf1058452451b77607305a44e2682938f505a82ab8d314829ba3/govuk_frontend_jinja-3.7.0.tar.gz", hash = "sha256:b736feee0dd3ff64d42f5bf10107864aeaeeea6816fc709662fd95128a6d8fc9", size = 35347, upload-time = "2025-08-14T14:30:06.581Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/c0/90cbd104aa0758627e5e7574d2876c762d66cd17c8fe1d9d9c7dbe7ef290/govuk_frontend_jinja-3.4.0-py3-none-any.whl", hash = "sha256:d2d3d56db3549e0dbef1b385076ea3a55b0c2279a57205cafc7fd812e0f3943f", size = 46320, upload-time = "2024-10-15T11:06:24.549Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/d4/0c912a20071d90f563ff31406d195901c78994f01c484ca1fd84a09df0c4/govuk_frontend_jinja-3.7.0-py3-none-any.whl", hash = "sha256:6f7436d267a3209358159e2cc5813b5621b905ce1e16cc07f0eaa8c5dd8df7e2", size = 48799, upload-time = "2025-08-14T14:30:05.027Z" },
 ]
 
 [[package]]

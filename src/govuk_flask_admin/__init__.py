@@ -61,7 +61,7 @@ class GovSelect_BugFixed(GovSelect):
 
 
 @dataclass
-class GovukFrontendV5_6Theme(Theme):
+class GovukFrontendTheme(Theme):
     folder: str = "admin"
     base_template: str = "admin/base.html"
 

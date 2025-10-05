@@ -5,6 +5,7 @@
 {% set containerClasses = '' %}
 {% set mainClasses = 'govuk-!-padding-top-0' %}
 {% set assetPath = url_for('govuk_flask_admin.static', filename='assets').rstrip('/') %}
+{% set govukRebrand = true %}
 
 {% block head %}
 {{ govuk_flask_admin_assets_tags() | safe }}
