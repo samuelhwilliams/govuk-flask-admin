@@ -339,11 +339,17 @@ class GovukModelView(ModelView):
         from flask import request
         from werkzeug.datastructures import ImmutableMultiDict
 
-        # Build modified args dict
+        # Build modified args dict, filtering out empty filter values
         modified = {}
         for key in request.args.keys():
             # Get all values for this key (handles multi-value params)
             values = request.args.getlist(key)
+
+            # Skip empty filter parameters (but keep non-filter params like search, page, etc.)
+            # Filter params start with 'flt' followed by digits
+            if key.startswith('flt') and all(v == '' or (isinstance(v, str) and v.strip() == '') for v in values):
+                continue
+
             if len(values) == 1:
                 modified[key] = values[0]
             else:
