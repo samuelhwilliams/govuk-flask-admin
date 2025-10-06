@@ -47,19 +47,6 @@ except ImportError:
 ROOT_DIR = Path(__file__).parent.parent
 
 
-class GovSelect_BugFixed(GovSelect):
-    """Custom GOV.UK select widget using our custom select macro.
-
-    This fixes the lowercase bug in govuk-frontend-wtf by using our
-    own select macro template.
-
-    https://github.com/LandRegistry/govuk-frontend-jinja/issues/82:
-      the govuk_frontend_jinja component lowercases select option values incorrectly; this breaks flask-admin enum
-      filtering
-    """
-    template = "components/select/template.html"
-
-
 @dataclass
 class GovukFrontendTheme(Theme):
     folder: str = "admin"
@@ -275,7 +262,7 @@ class GovukAdminModelConverter(AdminModelConverter):
         field_args["choices"] = available_choices
         field_args["validators"].append(validators.AnyOf(accepted_values))
         field_args["coerce"] = lambda v: v.name if isinstance(v, Enum) else str(v) if v else v
-        field_args["widget"] = GovSelect_BugFixed()
+        field_args["widget"] = GovSelect()
 
         return SelectField(**field_args)
 
