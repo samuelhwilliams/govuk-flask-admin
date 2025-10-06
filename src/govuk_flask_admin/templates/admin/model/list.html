@@ -110,13 +110,6 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
       <h1 class="govuk-heading-l">{{ admin_view.name }}</h1>
-
-      {% if admin_view.can_create %}
-        <a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4"
-           href="{{ url_for('.create_view', url=return_url) }}">
-          Create new {{ admin_view.name|lower }}
-        </a>
-      {% endif %}
     </div>
   </div>
 
@@ -199,19 +192,40 @@
           {# Filter toggle button created by FilterToggleButton JS #}
         </div>
 
-        {% if actions %}
-          {% set combined_actions = actions %}
-
+        {# Combined actions menu - only show if there are any actions available #}
+        {% if actions or admin_view.can_create or admin_view.can_export %}
           <div class="moj-button-menu" data-module="moj-button-menu">
-            {% for value, text in combined_actions %}
-              {{ govukButton({
-                "name": "action",
-                "text": text,
-                "type": "submit",
-                "classes": "moj-button-menu__item govuk-button--secondary",
-                "attributes": {"form": "bulk-action-form", "value": value}
-              }) }}
-            {% endfor %}
+            {# Create button (if enabled) #}
+            {% if admin_view.can_create %}
+              <a href="{{ url_for('.create_view', url=return_url) }}"
+                 class="govuk-button govuk-button--secondary moj-button-menu__item">
+                Create new {{ admin_view.name|lower }}
+              </a>
+            {% endif %}
+
+            {# Bulk actions (if available) #}
+            {% if actions %}
+              {% for value, text in actions %}
+                {{ govukButton({
+                  "name": "action",
+                  "text": text,
+                  "type": "submit",
+                  "classes": "moj-button-menu__item govuk-button--secondary",
+                  "attributes": {"form": "bulk-action-form", "value": value}
+                }) }}
+              {% endfor %}
+            {% endif %}
+
+            {# Export buttons (if enabled) #}
+            {% if admin_view.can_export %}
+              {% for export_type in admin_view.export_types %}
+                <a href="{{ get_url('.export', export_type=export_type, **request.args) }}"
+                   class="govuk-button govuk-button--secondary moj-button-menu__item"
+                   download>
+                  Download {{ count }} results as {{ export_type|upper }}
+                </a>
+              {% endfor %}
+            {% endif %}
           </div>
         {% endif %}
       </div>
@@ -226,17 +240,6 @@
           {% endif %}
           <input type="hidden" name="url" value="{{ return_url }}">
       {% endif %}
-
-      <div class="govuk-grid-row govuk-!-margin-bottom-0">
-        <div class="govuk-grid-column-two-thirds">
-        </div>
-        <div class="govuk-grid-column-one-third govuk-!-text-align-right">
-          {# Export #}
-          {% if admin_view.can_export %}
-            {{ model_layout.export_options() }}
-          {% endif %}
-        </div>
-      </div>
 
   {# Table #}
   {% block model_list_table %}
