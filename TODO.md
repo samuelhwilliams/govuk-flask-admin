@@ -4,8 +4,11 @@
 
 - Move the navigation bar to the top (service navigation? might require dropdowns which would mean JS which would 
   mean sad)
-- Make model list views use MoJ filter component w/ actions menu
 - Refine layout of all of the views
+- The model list table has a scrollbar visible even when it doesn't need one - some layout issue probably from my 
+  custom styling, FIX IT.
+- Move the show/hide filter + action menu and results # + pagination + # per page outside of the scroll container. 
+  If possible?
 
 ## Other
 
