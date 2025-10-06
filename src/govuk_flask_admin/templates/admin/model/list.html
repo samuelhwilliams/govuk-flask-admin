@@ -201,7 +201,6 @@
 
         {% if actions %}
           {% set combined_actions = actions %}
-          {% set _ = combined_actions.append(("create", "Create new user")) %}
 
           <div class="moj-button-menu" data-module="moj-button-menu">
             {% for value, text in combined_actions %}
