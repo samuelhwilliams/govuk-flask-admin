@@ -12,6 +12,24 @@ $govuk-page-width: 1920px;
 @import 'components/sort-buttons';
 @import 'components/filters';
 
+// Fix button alignment in MOJ action bar
+// MOJ Frontend sets vertical-align: initial but GOV.UK's .govuk-button sets vertical-align: top
+// Since we're importing pre-compiled MOJ CSS, it comes before GOV.UK in the cascade
+// This override ensures buttons in the action bar align properly
+// FIXME: feels like this should be fixable by doing something better/more correctly with sass
+.moj-action-bar .govuk-button {
+  vertical-align: initial;
+}
+
+// Fix dropdown positioning in button menu
+// GOV.UK button has margin-bottom: 32px which increases the container height
+// The wrapper is positioned absolute within the container, so it appears too far down
+// Remove the margin from the toggle button to close the gap
+// FIXME: probably fixed at the same time as the thing above ^^
+.moj-button-menu__toggle-button {
+  margin-bottom: 0;
+}
+
 .gfa-table__cell--compact {
   padding-top: 3px;
   padding-bottom: 3px;
