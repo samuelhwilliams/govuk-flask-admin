@@ -200,25 +200,19 @@
         </div>
 
         {% if actions %}
-          {% set action_items = [{"value": "", "text": "Choose an action"}] %}
-          {% for action in actions %}
-            {% set _ = action_items.append({"value": action[0], "text": action[1]}) %}
-          {% endfor %}
+          {% set combined_actions = actions %}
+          {% set _ = combined_actions.append(("create", "Create new user")) %}
 
-          <div class="moj-button-group">
-            {{ govukSelect({
-              "id": "action",
-              "name": "action",
-              "label": {"text": "With selected", "classes": "govuk-label--s govuk-visually-hidden"},
-              "formGroup": {"classes": "govuk-!-margin-bottom-0"},
-              "items": action_items,
-              "attributes": {"form": "bulk-action-form"}
-            }) }}
-            {{ govukButton({
-              "html": "Apply to <span id='selected-count'>0</span> selected",
-              "classes": "govuk-button--secondary govuk-!-margin-bottom-0",
-              "attributes": {"id": "action-submit", "form": "bulk-action-form"}
-            }) }}
+          <div class="moj-button-menu" data-module="moj-button-menu">
+            {% for value, text in combined_actions %}
+              {{ govukButton({
+                "name": "action",
+                "text": text,
+                "type": "submit",
+                "classes": "moj-button-menu__item govuk-button--secondary",
+                "attributes": {"form": "bulk-action-form", "value": value}
+              }) }}
+            {% endfor %}
           </div>
         {% endif %}
       </div>
