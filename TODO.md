@@ -9,6 +9,7 @@
   custom styling, FIX IT.
 - Move the show/hide filter + action menu and results # + pagination + # per page outside of the scroll container. 
   If possible?
+- fix filter tags - asset loading/content shown
 
 ## Other
 
