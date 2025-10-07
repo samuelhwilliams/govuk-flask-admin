@@ -504,10 +504,8 @@
             // Update button text with count
             if (count > 0) {
               button.textContent = originalText.trim() + ' (' + count + ' selected)';
-              button.disabled = false;
             } else {
               button.textContent = originalText.trim() + ' (0 selected)';
-              button.disabled = true;
             }
           });
         }
