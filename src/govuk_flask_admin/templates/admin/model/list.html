@@ -381,6 +381,9 @@
       {# Pagination #}
       {% if num_pages and num_pages > 1 %}
         {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
+      {% else %}
+        {# Just create some space #}
+        <p class="govuk-body"></p>
       {% endif %}
     </div>
     <div class="govuk-grid-column-one-quarter govuk-!-text-align-right">
