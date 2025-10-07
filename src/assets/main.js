@@ -5,14 +5,8 @@ import { FilterToggleButton } from '@ministryofjustice/frontend/moj/components/f
 initAll();
 initAllMOJ();
 
-// Initialize FilterToggleButton separately (not included in initAll)
-const filterElements = document.querySelectorAll('[data-module="moj-filter"]');
-filterElements.forEach(element => {
-  // Prevent scroll when filter panel is focused by overriding the focus method
-  const originalFocus = element.focus;
-  element.focus = function() {
-    originalFocus.call(this, { preventScroll: true });
-  };
+// Export FilterToggleButton to global scope so templates can use it
+window.FilterToggleButton = FilterToggleButton;
 
-  new FilterToggleButton(element);
-});
+// Dispatch event to signal FilterToggleButton is ready
+window.dispatchEvent(new Event('FilterToggleButtonReady'));
