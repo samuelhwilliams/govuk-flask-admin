@@ -553,4 +553,46 @@
       })();
     </script>
   {% endif %}
+
+  {# Update filter toggle button text to show active filter count #}
+  {% if search_supported or filters %}
+    <script {{ admin_csp_nonce_attribute }}>
+      (function() {
+        // Count active filters from server-side variables
+        var activeFilterCount = {{ (active_filters|length if active_filters else 0) + (1 if search else 0) }};
+
+        if (activeFilterCount > 0) {
+          // Wait for FilterToggleButton to create the button and set aria-expanded
+          var attempts = 0;
+          var maxAttempts = 20;
+          var checkButton = setInterval(function() {
+            var filterToggleButton = document.querySelector('.moj-action-bar__filter button');
+            attempts++;
+
+            if (filterToggleButton && filterToggleButton.hasAttribute('aria-expanded')) {
+              clearInterval(checkButton);
+
+              // Update button text with active count
+              function updateFilterButtonText() {
+                var isExpanded = filterToggleButton.getAttribute('aria-expanded') === 'true';
+                var baseText = isExpanded ? 'Hide filter' : 'Show filter';
+                filterToggleButton.textContent = baseText + ' (' + activeFilterCount + ' active)';
+              }
+
+              // Initial update
+              updateFilterButtonText();
+
+              // Listen for button clicks to update text when expanded/collapsed
+              filterToggleButton.addEventListener('click', function() {
+                // Wait a bit for aria-expanded to update
+                setTimeout(updateFilterButtonText, 50);
+              });
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkButton);
+            }
+          }, 50);
+        }
+      })();
+    </script>
+  {% endif %}
 {% endblock %}

@@ -1,5 +1,6 @@
 """E2E tests for filter UI interactions."""
 import pytest
+from playwright.sync_api import expect
 
 
 @pytest.mark.e2e
@@ -236,6 +237,54 @@ class TestFilterInteractions:
                 break
 
         assert found_colour_select, "Expected to find favourite_colour enum select with 3 colour options"
+
+    def test_filter_button_shows_active_count(self, page):
+        """Test filter toggle button shows active filter count."""
+        # Test with no filters - should not show count
+        page.goto(f"{page.base_url}/admin/user/")
+        page.wait_for_selector('.govuk-table')
+
+        # Wait for filter button to be initialized
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        expect(filter_toggle).to_have_text("Show filter")
+
+        # Test with one filter - should show "(1 active)"
+        page.goto(f"{page.base_url}/admin/user/?flt0_0=25")
+        page.wait_for_selector('.govuk-table')
+
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        # Wait for JS to update button text
+        expect(filter_toggle).to_contain_text("(1 active)")
+        expect(filter_toggle).to_contain_text("Show filter")
+
+        # Test with search only - should show "(1 active)"
+        page.goto(f"{page.base_url}/admin/user/?search=alice")
+        page.wait_for_selector('.govuk-table')
+
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        expect(filter_toggle).to_contain_text("(1 active)")
+
+        # Test with filter + search - should show "(2 active)"
+        page.goto(f"{page.base_url}/admin/user/?flt0_0=25&search=alice")
+        page.wait_for_selector('.govuk-table')
+
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        expect(filter_toggle).to_contain_text("(2 active)")
+
+        # Click to expand - should change to "Hide filter (2 active)"
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        expect(filter_toggle).to_contain_text("Hide filter")
+        expect(filter_toggle).to_contain_text("(2 active)")
+
+        # Click to collapse - should change back to "Show filter (2 active)"
+        filter_toggle.click()
+        filter_panel.wait_for(state='hidden')
+
+        expect(filter_toggle).to_contain_text("Show filter")
+        expect(filter_toggle).to_contain_text("(2 active)")
 
 
 @pytest.mark.e2e
