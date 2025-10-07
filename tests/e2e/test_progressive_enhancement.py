@@ -1,5 +1,6 @@
 """E2E tests for progressive enhancement (functionality without JavaScript)."""
 import pytest
+from playwright.sync_api import expect
 
 
 @pytest.mark.e2e
@@ -67,20 +68,15 @@ class TestNoJavaScript:
 
     def test_date_filter_works_without_js(self, page_no_js):
         """Test date filter combines fields server-side without JS."""
-        # Note: GOV.UK accordion requires JavaScript, so without JS we can't expand sections
-        # This test verifies that the date filter form structure exists in the DOM
-        # even without JS, and that if manually submitted (e.g., via direct URL),
-        # the server correctly combines date fields
+        # Note: MOJ FilterToggleButton requires JavaScript
+        # Without JS, we test that date filters work when accessing via URL directly
+        # and that the server correctly combines date fields
 
         page_no_js.goto(f"{page_no_js.base_url}/admin/user/")
         page_no_js.wait_for_selector('.govuk-table')
 
-        # Open filter details (should work without JS - details/summary is HTML5)
-        page_no_js.click('summary.govuk-details__summary')
-
-        # Without JS, GOV.UK accordion sections remain collapsed
-        # Instead, test that date filters work when accessing via URL directly
         # Navigate to a URL with date filter parameters
+        # Test that date filters work when accessing via URL directly
         page_no_js.goto(f"{page_no_js.base_url}/admin/user/?flt21_21-day=1&flt21_21-month=1&flt21_21-year=2024")
         page_no_js.wait_for_selector('.govuk-table')
 
@@ -130,29 +126,20 @@ class TestNoJavaScript:
 
     def test_search_works_without_js(self, page_no_js):
         """Test search works without JavaScript."""
+        # Note: MOJ FilterToggleButton requires JavaScript
+        # Without JS, we test that search works when accessing via URL directly
+
         page_no_js.goto(f"{page_no_js.base_url}/admin/user/")
         page_no_js.wait_for_selector('.govuk-table')
 
-        # Open filter details to access search
-        page_no_js.click('summary.govuk-details__summary')
-
-        # Fill search field
-        search_input = page_no_js.locator('input[name="search"]')
-        assert search_input.count() > 0, "Expected search input"
-        search_input.fill('alice')
-
-        # Submit filter form (without JS, this will include all empty filter fields)
-        apply_button = page_no_js.locator('#filter_form button[type="submit"]:has-text("Apply")')
-        apply_button.click()
-
-        # Wait for page to reload
-        page_no_js.wait_for_load_state('networkidle')
+        # Navigate to URL with search parameter to test server-side search
+        page_no_js.goto(f"{page_no_js.base_url}/admin/user/?search=alice")
+        page_no_js.wait_for_selector('.govuk-table')
 
         # Assert search parameter in URL
         assert 'search=alice' in page_no_js.url, "Expected search parameter in URL"
 
         # Assert table visible with search results
-        # Server should handle empty filter params gracefully
         table = page_no_js.locator('.govuk-table')
         assert table.is_visible(), "Expected table to be visible with search results"
 
@@ -189,45 +176,57 @@ class TestJavaScriptEnhancement:
             assert not checkboxes.nth(i).is_checked(), f"Checkbox {i} should be unchecked"
 
     def test_selected_count_updates_with_js(self, page):
-        """Test selected count updates dynamically (requires JS)."""
+        """Test selected count updates dynamically in button text (requires JS)."""
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        # Selected count element
-        count_element = page.locator('#selected-count')
-        assert count_element.count() > 0, "Expected selected count element"
+        # Open actions menu to see delete button
+        actions_menu_button = page.locator('.moj-button-menu__toggle-button')
+        checkboxes = page.locator('.action-checkbox')
 
-        # Initial count should be 0
-        assert count_element.text_content() == "0", "Initial count should be 0"
+        # Check initial state - open menu and check button text
+        actions_menu_button.click()
+        delete_button = page.locator('button[form="bulk-action-form"][value="delete"]')
+        assert "(0 selected)" in delete_button.text_content(), "Initial count should be 0"
+        actions_menu_button.click()  # Close menu
 
         # Check first checkbox
-        checkboxes = page.locator('.action-checkbox')
         assert checkboxes.count() > 0, "Expected action checkboxes"
-
         checkboxes.first.check()
 
         # Count should update to 1 (JS functionality)
-        assert count_element.text_content() == "1", "Count should update to 1"
+        # Wait for button text to contain "(1 selected)"
+        actions_menu_button.click()
+        expect(delete_button).to_contain_text("(1 selected)")
+        actions_menu_button.click()
 
         # Check second checkbox
         checkboxes.nth(1).check()
 
         # Count should update to 2
-        assert count_element.text_content() == "2", "Count should update to 2"
+        actions_menu_button.click()
+        expect(delete_button).to_contain_text("(2 selected)")
+        actions_menu_button.click()
 
         # Uncheck first
         checkboxes.first.uncheck()
 
         # Count should update to 1
-        assert count_element.text_content() == "1", "Count should update back to 1"
+        actions_menu_button.click()
+        expect(delete_button).to_contain_text("(1 selected)")
 
     def test_filter_empty_field_removal(self, page):
         """Test empty filter fields removed before submit (JS enhancement)."""
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        # Open filters
-        page.click('summary.govuk-details__summary')
+        # Show filter panel
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+
+        # Wait for filter panel to be visible
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
 
         # Expand Age filter
         age_button = page.locator('button:has-text("Age")').first

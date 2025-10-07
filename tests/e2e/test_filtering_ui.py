@@ -7,37 +7,45 @@ class TestFilterInteractions:
     """Test filter UI interactions."""
 
     def test_filter_details_expands_collapses(self, page):
-        """Test clicking filter summary opens/closes filters."""
+        """Test clicking filter toggle button shows/hides filters."""
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        details = page.locator('details.govuk-details')
-        assert details.count() > 0, "Expected details element for filters"
+        # Wait for filter toggle button to be created by JavaScript
+        page.wait_for_selector('.moj-action-bar__filter button')
 
-        # Assert details initially closed
-        is_open = details.get_attribute('open')
-        assert is_open is None, "Expected details to be initially closed"
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_panel = page.locator('.moj-filter')
 
-        # Click summary to open
-        summary = page.locator('summary.govuk-details__summary')
-        summary.click()
+        # Assert filter initially hidden (has moj-js-hidden class or hidden attribute)
+        assert not filter_panel.is_visible(), "Expected filter panel to be initially hidden"
+        assert "Show filter" in filter_toggle.text_content(), "Expected 'Show filter' text"
 
-        # Assert details opened
-        is_open = details.get_attribute('open')
-        assert is_open is not None, "Expected details to be open after click"
+        # Click toggle to show
+        filter_toggle.click()
+        filter_panel.wait_for(state='visible')
 
-        # Click again to close
-        summary.click()
-        is_open = details.get_attribute('open')
-        assert is_open is None, "Expected details to close after second click"
+        # Assert filter panel visible
+        assert filter_panel.is_visible(), "Expected filter panel to be visible after click"
+        assert "Hide filter" in filter_toggle.text_content(), "Expected 'Hide filter' text"
+
+        # Click again to hide
+        filter_toggle.click()
+        filter_panel.wait_for(state='hidden')
+
+        assert not filter_panel.is_visible(), "Expected filter panel to be hidden after second click"
+        assert "Show filter" in filter_toggle.text_content(), "Expected 'Show filter' text again"
 
     def test_date_filter_three_inputs(self, page):
         """Test date filter shows day/month/year inputs."""
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        # Open filters details
-        page.click('summary.govuk-details__summary')
+        # Show filters panel
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
 
         # Expand the created_at filter accordion section
         created_at_section = page.locator('button:has-text("Created At")')
@@ -64,8 +72,11 @@ class TestFilterInteractions:
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        # Open filters
-        page.click('summary.govuk-details__summary')
+        # Show filters panel
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
 
         # Expand Age accordion section
         age_section = page.locator('button:has-text("Age")').first
@@ -77,9 +88,9 @@ class TestFilterInteractions:
         age_filter = page.locator('input#flt0_0')
         age_filter.fill('25')
 
-        # Click Apply button within the filter form (not the bulk action button)
-        apply_button = page.locator('#filter_form button[type="submit"]:has-text("Apply")')
-        assert apply_button.count() > 0, "Expected Apply button in filter form"
+        # Click Apply filters button within the filter form
+        apply_button = page.locator('#filter_form button[type="submit"]:has-text("Apply filters")')
+        assert apply_button.count() > 0, "Expected 'Apply filters' button in filter form"
         apply_button.click()
 
         # Wait for page to reload with filtered results
@@ -88,8 +99,8 @@ class TestFilterInteractions:
         # Assert URL contains filter param
         assert 'flt0_0=25' in page.url, "Expected filter parameter in URL"
 
-        # Assert filter tag is displayed
-        filter_tags = page.locator('.govuk-tag:has-text("Age")')
+        # Assert filter tag is displayed in the selected filters section
+        filter_tags = page.locator('.moj-filter-tags .moj-filter__tag')
         assert filter_tags.count() > 0, "Expected filter tag to be displayed"
 
         # Table should still be present (even if no results)
@@ -102,17 +113,22 @@ class TestFilterInteractions:
         page.goto(f"{page.base_url}/admin/user/?flt0_0=25")
         page.wait_for_selector('.govuk-table')
 
-        # Assert filter tag is displayed
-        filter_tag = page.locator('.govuk-tag:has-text("Age")')
-        assert filter_tag.count() > 0, "Expected filter tag to be displayed"
-
         # Assert URL has filter param
         assert 'flt0_0=25' in page.url, "Expected age filter in URL"
 
-        # Click remove link (×)
-        remove_link = page.locator('.gfa-filter-tag-remove')
-        assert remove_link.count() > 0, "Expected remove link in filter tag"
-        remove_link.click()
+        # Show filter panel to see filter tags
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        # Assert filter tag is displayed in MOJ filter tags
+        # The .moj-filter__tag element IS the <a> tag itself
+        filter_tag = page.locator('.moj-filter__tag')
+        assert filter_tag.count() > 0, "Expected filter tag to be displayed"
+
+        # Click the filter tag to remove it
+        filter_tag.first.click()
 
         # Wait for page to reload
         page.wait_for_load_state('networkidle')
@@ -120,8 +136,14 @@ class TestFilterInteractions:
         # Assert filter removed from URL
         assert 'flt0_0' not in page.url, "Expected filter to be removed from URL"
 
+        # Show filter panel again to check tags are gone
+        filter_toggle_after = page.locator('.moj-action-bar__filter button')
+        filter_toggle_after.click()
+        filter_panel_after = page.locator('.moj-filter')
+        filter_panel_after.wait_for(state='visible')
+
         # Assert filter tag no longer displayed
-        filter_tag_after = page.locator('.govuk-tag:has-text("Age")')
+        filter_tag_after = page.locator('.moj-filter__tag')
         assert filter_tag_after.count() == 0, "Expected no filter tags after removal"
 
     def test_clear_all_filters(self, page):
@@ -134,19 +156,19 @@ class TestFilterInteractions:
         assert 'flt0_0=25' in page.url, "Expected age filter in URL"
         assert 'search=test' in page.url, "Expected search param in URL"
 
-        # Assert filter tags displayed
-        filter_tags = page.locator('.govuk-tag:has-text("Age")')
+        # Show filter panel to see filter tags and clear link
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        # Assert filter tags displayed (MOJ filter tags)
+        filter_tags = page.locator('.moj-filter__tag')
         assert filter_tags.count() > 0, "Expected filter tags to be displayed"
 
-        # Open the filter details to see the clear link
-        details = page.locator('details.govuk-details')
-        is_open = details.get_attribute('open')
-        if is_open is None:
-            page.click('summary.govuk-details__summary')
-
-        # Click clear all link within the filter form
-        clear_link = page.locator('#filter_form a:has-text("Clear all")')
-        assert clear_link.count() > 0, "Expected Clear all link in filter form"
+        # Click "Clear filters" link in the MOJ filter selected section
+        clear_link = page.locator('a:has-text("Clear filters")')
+        assert clear_link.count() > 0, "Expected Clear filters link in filter panel"
         clear_link.click()
 
         # Wait for page to reload
@@ -156,8 +178,14 @@ class TestFilterInteractions:
         assert 'flt0_0' not in page.url, "Expected age filter to be cleared"
         assert 'search' not in page.url, "Expected search to be cleared"
 
+        # Show filter panel again and verify no tags
+        filter_toggle_after = page.locator('.moj-action-bar__filter button')
+        filter_toggle_after.click()
+        filter_panel_after = page.locator('.moj-filter')
+        filter_panel_after.wait_for(state='visible')
+
         # Assert no filter tags displayed
-        filter_tags_after = page.locator('.govuk-tag:has-text("Age")')
+        filter_tags_after = page.locator('.moj-filter__tag')
         assert filter_tags_after.count() == 0, "Expected no filter tags after clearing"
 
     def test_enum_filter_dropdown(self, page):
@@ -165,8 +193,13 @@ class TestFilterInteractions:
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        # Open filters
-        page.click('summary.govuk-details__summary')
+        # Show filter panel
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+
+        # Wait for filter panel to be visible
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
 
         # Expand Favourite Colour accordion section
         colour_section = page.locator('button:has-text("Favourite Colour")')
@@ -217,7 +250,14 @@ class TestFilterPersistence:
 
         # Assert filter is active
         assert 'flt0_0=25' in page.url, "Expected age filter in URL"
-        filter_tag = page.locator('.govuk-tag:has-text("Age")')
+
+        # Show filter panel to check for filter tags
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        filter_tag = page.locator('.moj-filter__tag')
         assert filter_tag.count() > 0, "Expected filter tag to be displayed"
 
         # Check if pagination exists (with default 8 users and page_size 15, no pagination)
@@ -233,8 +273,14 @@ class TestFilterPersistence:
             # Assert filter still active in URL
             assert 'flt0_0=25' in page.url, "Expected filter to persist after pagination"
 
+            # Show filter panel again and check for tag
+            filter_toggle_after = page.locator('.moj-action-bar__filter button')
+            filter_toggle_after.click()
+            filter_panel_after = page.locator('.moj-filter')
+            filter_panel_after.wait_for(state='visible')
+
             # Assert filter tag still displayed
-            filter_tag_after = page.locator('.govuk-tag:has-text("Age")')
+            filter_tag_after = page.locator('.moj-filter__tag')
             assert filter_tag_after.count() > 0, "Expected filter tag after pagination"
 
     def test_filters_persist_after_sort(self, page):
@@ -245,7 +291,14 @@ class TestFilterPersistence:
 
         # Assert filter is active
         assert 'flt0_0=25' in page.url, "Expected age filter in URL"
-        filter_tag = page.locator('.govuk-tag:has-text("Age")')
+
+        # Show filter panel to check for filter tags
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        filter_tag = page.locator('.moj-filter__tag')
         assert filter_tag.count() > 0, "Expected filter tag to be displayed"
 
         # Click a sortable column header (e.g., Email or Name)
@@ -261,6 +314,12 @@ class TestFilterPersistence:
         # Assert sort parameter also present
         assert 'sort=' in page.url, "Expected sort parameter in URL"
 
+        # Show filter panel again and check for tag
+        filter_toggle_after = page.locator('.moj-action-bar__filter button')
+        filter_toggle_after.click()
+        filter_panel_after = page.locator('.moj-filter')
+        filter_panel_after.wait_for(state='visible')
+
         # Assert filter tag still displayed
-        filter_tag_after = page.locator('.govuk-tag:has-text("Age")')
+        filter_tag_after = page.locator('.moj-filter__tag')
         assert filter_tag_after.count() > 0, "Expected filter tag after sorting"

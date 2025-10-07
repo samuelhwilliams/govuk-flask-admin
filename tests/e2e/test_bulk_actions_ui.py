@@ -41,23 +41,38 @@ class TestBulkActionUI:
         page.goto(f"{page.base_url}/admin/user/")
         page.wait_for_selector('.govuk-table')
 
-        count_element = page.locator('#selected-count')
+        # Open the actions menu to see the delete button
+        actions_menu_button = page.locator('.moj-button-menu__toggle-button')
         checkboxes = page.locator('.action-checkbox')
 
-        # Initial count is 0
-        assert count_element.text_content() == "0"
+        # Check initial state - open menu and check button text
+        actions_menu_button.click()
+        delete_button = page.locator('button[form="bulk-action-form"][value="delete"]')
+        assert "(0 selected)" in delete_button.text_content()
+        assert delete_button.is_disabled()
+        actions_menu_button.click()  # Close menu
 
         # Check first checkbox
         checkboxes.first.check()
-        assert count_element.text_content() == "1"
+        page.wait_for_timeout(100)  # Wait for JavaScript to update
+        actions_menu_button.click()
+        assert "(1 selected)" in delete_button.text_content()
+        assert not delete_button.is_disabled()
+        actions_menu_button.click()
 
         # Check second checkbox
         checkboxes.nth(1).check()
-        assert count_element.text_content() == "2"
+        page.wait_for_timeout(100)
+        actions_menu_button.click()
+        assert "(2 selected)" in delete_button.text_content()
+        actions_menu_button.click()
 
         # Uncheck first checkbox
         checkboxes.first.uncheck()
-        assert count_element.text_content() == "1"
+        page.wait_for_timeout(100)
+        actions_menu_button.click()
+        assert "(1 selected)" in delete_button.text_content()
+        actions_menu_button.click()
 
     def test_bulk_action_confirmation_flow(self, page):
         """Test full bulk action workflow with confirmation."""
@@ -71,11 +86,11 @@ class TestBulkActionUI:
         checkboxes.first.check()
         checkboxes.nth(1).check()
 
-        # Select delete action
-        page.select_option('#action', 'delete')
-
-        # Click apply button
-        page.click('#action-submit')
+        # Open actions menu and click delete
+        actions_menu_button = page.locator('.moj-button-menu__toggle-button')
+        actions_menu_button.click()
+        delete_button = page.locator('button[form="bulk-action-form"][value="delete"]')
+        delete_button.click()
 
         # Should redirect to confirmation page
         page.wait_for_selector('.govuk-notification-banner--important')
@@ -113,29 +128,26 @@ class TestBulkActionUI:
 
         page.on("dialog", handle_dialog)
 
-        # Click apply without selection
-        page.click('#action-submit')
+        # Try to click delete button without selection - button should be disabled
+        actions_menu_button = page.locator('.moj-button-menu__toggle-button')
+        actions_menu_button.click()
+        delete_button = page.locator('button[form="bulk-action-form"][value="delete"]')
 
-        # Wait a moment for the alert
-        page.wait_for_timeout(500)
+        # Button should be disabled when no items selected
+        assert delete_button.is_disabled()
 
-        # Assert error message
-        assert len(alerts) > 0
-        assert "select at least one" in alerts[-1].lower()
+        # Try clicking anyway (won't trigger alert since button is disabled)
+        # But we can test that selecting items enables it
+        actions_menu_button.click()  # Close menu
 
-        # Select checkbox but no action
         checkboxes = page.locator('.action-checkbox')
         checkboxes.first.check()
+        page.wait_for_timeout(100)
 
-        # Click apply without selecting action
-        page.click('#action-submit')
-
-        # Wait for alert
-        page.wait_for_timeout(500)
-
-        # Assert error message
-        assert len(alerts) > 1
-        assert "select an action" in alerts[-1].lower()
+        # Now button should be enabled
+        actions_menu_button.click()
+        assert not delete_button.is_disabled()
+        assert "(1 selected)" in delete_button.text_content()
 
     def test_bulk_action_cancel(self, page):
         """Test cancelling bulk action."""
@@ -150,11 +162,11 @@ class TestBulkActionUI:
         checkboxes.first.check()
         checkboxes.nth(1).check()
 
-        # Select delete action
-        page.select_option('#action', 'delete')
-
-        # Click apply
-        page.click('#action-submit')
+        # Open actions menu and click delete
+        actions_menu_button = page.locator('.moj-button-menu__toggle-button')
+        actions_menu_button.click()
+        delete_button = page.locator('button[form="bulk-action-form"][value="delete"]')
+        delete_button.click()
 
         # Wait for confirmation page
         page.wait_for_selector('.govuk-notification-banner--important')

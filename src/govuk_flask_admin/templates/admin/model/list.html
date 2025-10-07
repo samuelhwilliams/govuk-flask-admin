@@ -312,6 +312,7 @@
                            name="rowid"
                            id="row-{{ get_pk_value(row) }}"
                            value="{{ get_pk_value(row) }}"
+                           {% if get_pk_value(row)|string in request.args.getlist('rowid') %}checked{% endif %}
                            aria-label="Select row {{ loop.index }}">
                     <label class="govuk-label govuk-checkboxes__label"
                            for="row-{{ get_pk_value(row) }}">
@@ -462,8 +463,10 @@
             // Update button text with count
             if (count > 0) {
               button.textContent = originalText.trim() + ' (' + count + ' selected)';
+              button.disabled = false;
             } else {
               button.textContent = originalText.trim() + ' (0 selected)';
+              button.disabled = true;
             }
           });
         }
