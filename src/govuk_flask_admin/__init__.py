@@ -548,15 +548,20 @@ class GovukModelView(ModelView):
 
     def _get_list_filter_args(self):
         """
-        Override to combine GOV.UK date input fields before processing filters.
+        Override to combine GOV.UK date input fields before processing filters
+        and include filter operation in the result.
 
         GOV.UK date inputs create three separate fields with -day, -month, -year suffixes.
         Flask-Admin expects a single field with YYYY-MM-DD format. This method intercepts
         the request parameters and combines the GOV.UK date fields before passing them to
         Flask-Admin's filter processing.
+
+        Also enhances the filter data to include the operation name (e.g., "equals", "after")
+        for better display in the UI.
         """
-        from flask import request
+        from flask import request, flash
         from werkzeug.datastructures import ImmutableMultiDict
+        from flask_admin.babel import gettext
 
         # Build modified args dict, filtering out empty filter values
         modified = {}
@@ -597,18 +602,47 @@ class GovukModelView(ModelView):
                         modified.pop(month_key, None)
                         modified.pop(year_key, None)
 
-        # Temporarily replace request.args with modified version
+        # Temporarily replace request.args with modified version for filter processing
         original_args = request.args
         request.args = ImmutableMultiDict(modified)
 
         try:
-            # Call parent implementation with modified request.args
-            result = super()._get_list_filter_args()
+            # Process filters manually to include operation name
+            if self._filters:
+                filters = []
+
+                for arg in request.args:
+                    if not arg.startswith("flt"):
+                        continue
+
+                    if "_" not in arg:
+                        continue
+
+                    pos, key = arg[3:].split("_", 1)
+
+                    if key in self._filter_args:
+                        idx, flt = self._filter_args[key]
+
+                        value = request.args[arg]
+
+                        if flt.validate(value):
+                            # Get the operation name from the filter
+                            operation = flt.operation()
+                            # Create tuple with operation: (idx, flt.name, operation, value)
+                            from flask_admin.babel import gettext
+                            from flask_admin.model.helpers import prettify_name
+                            data = (pos, (idx, prettify_name(flt.name), operation, value))
+                            filters.append(data)
+                        else:
+                            flash(self.get_invalid_value_msg(value, flt), "error")
+
+                # Sort filters and return
+                return [v[1] for v in sorted(filters, key=lambda n: n[0])]
+
+            return None
         finally:
             # Restore original request.args
             request.args = original_args
-
-        return result
 
     def _get_remove_filter_url(
         self,
@@ -626,7 +660,7 @@ class GovukModelView(ModelView):
         Generate URL to remove a specific filter while preserving other state.
 
         :param filter_position: Position of filter to remove in active_filters list
-        :param active_filters: List of currently active filters (idx, flt_name, value) tuples
+        :param active_filters: List of currently active filters (idx, flt_name, operation, value) tuples
         :param return_url: Base return URL
         :param sort_column: Current sort column index
         :param sort_desc: Whether sort is descending
@@ -636,10 +670,16 @@ class GovukModelView(ModelView):
         :param extra_args: Extra query arguments to preserve
         """
         # Build filter args excluding the one to remove
-        # active_filters is a list of (idx, flt_name, value) tuples
+        # active_filters is a list of (idx, flt_name, operation, value) tuples
         filter_args = {}
-        for pos, (idx, flt_name, value) in enumerate(active_filters):
+        for pos, filter_data in enumerate(active_filters):
             if pos != filter_position:
+                # Handle both 3-tuple (old format) and 4-tuple (new format with operation)
+                if len(filter_data) == 4:
+                    idx, flt_name, operation, value = filter_data
+                else:
+                    idx, flt_name, value = filter_data
+
                 # Reconstruct filter key using the format Flask-Admin expects
                 # The key format is: flt{position}_{arg_name}
                 # where arg_name comes from get_filter_arg(idx, filter_obj)
@@ -717,6 +757,53 @@ class GovukModelView(ModelView):
             kwargs.update(extra_args_copy)
 
         return self.get_url('.index_view', **kwargs)
+
+    def _get_filters(self, filters):
+        """
+        Override to handle 4-tuple filter format (idx, flt_name, operation, value).
+        Get active filters as dictionary of URL arguments and values.
+        """
+        kwargs = {}
+
+        if filters:
+            for i, filter_data in enumerate(filters):
+                # Handle both 3-tuple (old format) and 4-tuple (new format with operation)
+                if len(filter_data) == 4:
+                    idx, flt_name, operation, value = filter_data
+                else:
+                    idx, flt_name, value = filter_data
+
+                key = "flt%d_%s" % (i, self.get_filter_arg(idx, self._filters[idx]))
+                kwargs[key] = value
+
+        return kwargs
+
+    def _apply_filters(self, query, count_query, joins, count_joins, filters):
+        """
+        Override to handle 4-tuple filter format (idx, flt_name, operation, value).
+        """
+        if not filters:
+            return query, count_query, joins, count_joins
+
+        for filter_data in filters:
+            # Handle both 3-tuple (old format) and 4-tuple (new format with operation)
+            if len(filter_data) == 4:
+                idx, _flt_name, _operation, value = filter_data
+            else:
+                idx, _flt_name, value = filter_data
+
+            flt = self._filters[idx]
+
+            # The rest is the same as parent implementation
+            # We need to call parent's logic but it expects 3-tuple, so convert back
+            original_filter = (idx, _flt_name, value)
+
+            # Apply the filter using the parent's logic by calling it with single filter
+            query, count_query, joins, count_joins = super()._apply_filters(
+                query, count_query, joins, count_joins, [original_filter]
+            )
+
+        return query, count_query, joins, count_joins
 
     def _resolve_widget_class_for_sqlalchemy_column(self, prop: ColumnProperty):
         return GovTextInput

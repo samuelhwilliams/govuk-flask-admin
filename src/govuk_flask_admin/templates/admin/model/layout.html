@@ -9,7 +9,13 @@
 {# Helper macro to get active filter value #}
 {% macro get_active_filter_value(active_filters, filter_index) -%}
   {%- if active_filters -%}
-    {%- for idx, flt_name, value in active_filters -%}
+    {%- for filter_data in active_filters -%}
+      {# Handle both 3-tuple (old format) and 4-tuple (new format with operation) #}
+      {%- if filter_data|length == 4 -%}
+        {%- set idx, flt_name, operation, value = filter_data -%}
+      {%- else -%}
+        {%- set idx, flt_name, value = filter_data -%}
+      {%- endif -%}
       {%- if idx == filter_index -%}{{ value }}{%- endif -%}
     {%- endfor -%}
   {%- endif -%}

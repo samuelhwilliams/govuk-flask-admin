@@ -154,7 +154,15 @@
             {# Active filter tags grouped by filter name #}
             {% if active_filters %}
               {% set ns = namespace(current_filter_name='') %}
-              {% for idx, flt_name, value in active_filters %}
+              {% for filter_data in active_filters %}
+                {# Handle both 3-tuple (old format) and 4-tuple (new format with operation) #}
+                {% if filter_data|length == 4 %}
+                  {% set idx, flt_name, operation, value = filter_data %}
+                {% else %}
+                  {% set idx, flt_name, value = filter_data %}
+                  {% set operation = None %}
+                {% endif %}
+
                 {% if ns.current_filter_name != flt_name %}
                   {% if ns.current_filter_name != '' %}
                     </ul>
@@ -166,7 +174,7 @@
                 <li>
                   <a class="moj-filter__tag" href="{{ admin_view._get_remove_filter_url(loop.index0, active_filters, return_url, sort_column, sort_desc, search, page_size, default_page_size, extra_args) }}">
                     <span class="govuk-visually-hidden">Remove this filter</span>
-                    {{ value }}
+                    {% if operation %}{{ operation }}: {% endif %}{{ value }}
                   </a>
                 </li>
                 {% if loop.last %}
