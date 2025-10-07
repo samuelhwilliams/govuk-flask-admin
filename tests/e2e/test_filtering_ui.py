@@ -147,6 +147,51 @@ class TestFilterInteractions:
         filter_tag_after = page.locator('.moj-filter__tag')
         assert filter_tag_after.count() == 0, "Expected no filter tags after removal"
 
+    def test_remove_search_preserves_filters(self, page):
+        """Test removing search tag preserves active filters."""
+        # Apply both filter and search
+        page.goto(f"{page.base_url}/admin/user/?flt0_0=25&search=alice")
+        page.wait_for_selector('.govuk-table')
+
+        # Assert both filter and search are active in URL
+        assert 'flt0_0=25' in page.url, "Expected age filter in URL"
+        assert 'search=alice' in page.url, "Expected search param in URL"
+
+        # Show filter panel to see filter tags
+        filter_toggle = page.locator('.moj-action-bar__filter button')
+        filter_toggle.click()
+        filter_panel = page.locator('.moj-filter')
+        filter_panel.wait_for(state='visible')
+
+        # Assert both search and filter tags are displayed
+        filter_tags = page.locator('.moj-filter__tag')
+        assert filter_tags.count() >= 2, "Expected at least 2 tags (search + filter)"
+
+        # Find and click the search filter tag (should be under "Search" heading)
+        search_tag = page.locator('h3:has-text("Search") + ul .moj-filter__tag')
+        assert search_tag.count() > 0, "Expected search filter tag"
+        search_tag.click()
+
+        # Wait for page to reload
+        page.wait_for_load_state('networkidle')
+
+        # Assert search removed but filter preserved
+        assert 'search' not in page.url, "Expected search to be removed from URL"
+        assert 'flt0_0=25' in page.url, "Expected age filter to remain in URL"
+
+        # Show filter panel again to verify tags
+        filter_toggle_after = page.locator('.moj-action-bar__filter button')
+        filter_toggle_after.click()
+        filter_panel_after = page.locator('.moj-filter')
+        filter_panel_after.wait_for(state='visible')
+
+        # Assert search tag gone but filter tag remains
+        search_heading = page.locator('h3:has-text("Search")')
+        assert search_heading.count() == 0, "Expected no Search heading after removal"
+
+        filter_tags_after = page.locator('.moj-filter__tag')
+        assert filter_tags_after.count() > 0, "Expected filter tag to remain"
+
     def test_clear_all_filters(self, page):
         """Test 'Clear all' link removes all filters."""
         # Use correct filter param format

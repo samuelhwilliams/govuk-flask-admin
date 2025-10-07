@@ -443,6 +443,49 @@ class GovukModelView(ModelView):
 
         return self.get_url('.index_view', **kwargs)
 
+    def _get_remove_search_url(
+        self,
+        filter_args,
+        sort_column,
+        sort_desc,
+        page_size,
+        default_page_size,
+        extra_args
+    ):
+        """
+        Generate URL to remove search query while preserving filters and other state.
+
+        :param filter_args: Dictionary of active filter parameters
+        :param sort_column: Current sort column index
+        :param sort_desc: Whether sort is descending
+        :param page_size: Current page size
+        :param default_page_size: Default page size
+        :param extra_args: Extra query arguments to preserve
+        """
+        # Build complete URL with all state preserved except search
+        kwargs = {}
+
+        # Add all filter arguments
+        kwargs.update(filter_args)
+
+        # Add sort
+        if sort_column is not None:
+            kwargs['sort'] = sort_column
+        if sort_desc:
+            kwargs['sort_desc'] = 1
+
+        # Add page size if not default
+        if page_size and page_size != default_page_size:
+            kwargs['page_size'] = page_size
+
+        # Add extra args (excluding search if present)
+        if extra_args:
+            extra_args_copy = dict(extra_args)
+            extra_args_copy.pop('search', None)
+            kwargs.update(extra_args_copy)
+
+        return self.get_url('.index_view', **kwargs)
+
     def _resolve_widget_class_for_sqlalchemy_column(self, prop: ColumnProperty):
         return GovTextInput
 

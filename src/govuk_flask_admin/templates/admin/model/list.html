@@ -138,12 +138,12 @@
               </div>
             </div>
 
-            {# Search filter tag #}
+            {# Search filter tag - remove search while preserving all filters #}
             {% if search %}
             <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Search</h3>
             <ul class="moj-filter-tags">
               <li>
-                <a class="moj-filter__tag" href="{{ clear_search_url }}">
+                <a class="moj-filter__tag" href="{{ admin_view._get_remove_search_url(filter_args, sort_column, sort_desc, page_size, default_page_size, extra_args) }}">
                   <span class="govuk-visually-hidden">Remove this filter</span>
                   {{ search }}
                 </a>
