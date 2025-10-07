@@ -377,10 +377,12 @@
         {% endif %}
       </p>
     </div>
-    <div class="govuk-grid-column-one-half govuk-!-text-align-centre">
-      {# Pagination #}
+    <div class="govuk-grid-column-one-half">
+      {# Pagination - centered within column #}
       {% if num_pages and num_pages > 1 %}
-        {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
+        <div class="gfa-pagination-wrapper">
+          {{ govukPagination(govuk_pagination_data_builder(page, num_pages, pager_url)) }}
+        </div>
       {% else %}
         {# Just create some space #}
         <p class="govuk-body"></p>
