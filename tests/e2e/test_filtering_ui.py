@@ -7,6 +7,46 @@ from playwright.sync_api import expect
 class TestFilterInteractions:
     """Test filter UI interactions."""
 
+    def test_page_size_selector_changes_results(self, page):
+        """Test that changing page size selector works correctly."""
+        page.goto(f"{page.base_url}/admin/user/")
+        page.wait_for_selector('.govuk-table')
+
+        # Find the page size selector
+        page_size_select = page.locator('#page-size')
+
+        # Verify initial state (default should be 15)
+        initial_value = page_size_select.input_value()
+        assert initial_value == '15', f"Expected default page size to be 15, got {initial_value}"
+
+        # Change to 50
+        page_size_select.select_option('50')
+
+        # Wait for page to reload
+        page.wait_for_load_state('networkidle')
+        page.wait_for_selector('.govuk-table')
+
+        # Verify URL contains page_size parameter
+        assert 'page_size=50' in page.url, f"Expected page_size=50 in URL, got {page.url}"
+
+        # Verify selector shows the new value after reload
+        page_size_select = page.locator('#page-size')
+        assert page_size_select.input_value() == '50', "Page size selector should show 50 after reload"
+
+        # Change to 10
+        page_size_select.select_option('10')
+
+        # Wait for page to reload
+        page.wait_for_load_state('networkidle')
+        page.wait_for_selector('.govuk-table')
+
+        # Verify URL updated
+        assert 'page_size=10' in page.url, f"Expected page_size=10 in URL, got {page.url}"
+
+        # Verify selector shows the new value
+        page_size_select = page.locator('#page-size')
+        assert page_size_select.input_value() == '10', "Page size selector should show 10 after reload"
+
     def test_filter_details_expands_collapses(self, page):
         """Test clicking filter toggle button shows/hides filters."""
         page.goto(f"{page.base_url}/admin/user/")

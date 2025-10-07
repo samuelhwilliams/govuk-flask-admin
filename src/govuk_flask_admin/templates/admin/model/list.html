@@ -354,6 +354,10 @@
     </table>
   {% endblock %}
 
+  {% if actions %}
+    </form>
+  {% endif %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-one-quarter">
       <p class="govuk-body govuk-!-margin-top-2">
@@ -378,10 +382,6 @@
       {% endif %}
     </div>
   </div>
-
-  {% if actions %}
-  </form>
-  {% endif %}
 
   </div> {# end moj-filter-layout__content #}
   </div> {# end moj-filter-layout #}
