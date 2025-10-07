@@ -188,13 +188,15 @@
 
     <div class="moj-filter-layout__content">
       <div class="moj-action-bar">
+        {% if search_supported or filters %}
         <div class="moj-action-bar__filter">
           {# Filter toggle button created by FilterToggleButton JS #}
         </div>
+        {% endif %}
 
         {# Combined actions menu - only show if there are any actions available #}
         {% if actions or admin_view.can_create or admin_view.can_export %}
-          <div class="moj-button-menu" data-module="moj-button-menu">
+          <div class="moj-button-menu govuk-!-margin-bottom-6" data-module="moj-button-menu">
             {# Create button (if enabled) #}
             {% if admin_view.can_create %}
               <a href="{{ url_for('.create_view', url=return_url) }}"
