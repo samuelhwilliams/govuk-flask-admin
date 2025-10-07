@@ -348,6 +348,33 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
         # Removed: UuidFilterInList, UuidFilterNotInList
     )
 
+    date_filters = (
+        sqla_filters.DateEqualFilter,
+        sqla_filters.DateNotEqualFilter,
+        sqla_filters.DateGreaterFilter,
+        sqla_filters.DateSmallerFilter,
+        sqla_filters.FilterEmpty,
+        # Removed: DateBetweenFilter, DateNotBetweenFilter
+    )
+
+    datetime_filters = (
+        sqla_filters.DateTimeEqualFilter,
+        sqla_filters.DateTimeNotEqualFilter,
+        sqla_filters.DateTimeGreaterFilter,
+        sqla_filters.DateTimeSmallerFilter,
+        sqla_filters.FilterEmpty,
+        # Removed: DateTimeBetweenFilter, DateTimeNotBetweenFilter
+    )
+
+    time_filters = (
+        sqla_filters.TimeEqualFilter,
+        sqla_filters.TimeNotEqualFilter,
+        sqla_filters.TimeGreaterFilter,
+        sqla_filters.TimeSmallerFilter,
+        sqla_filters.FilterEmpty,
+        # Removed: TimeBetweenFilter, TimeNotBetweenFilter
+    )
+
     def _get_filter_list(self, column, filter_classes):
         """
         Helper to create filter instances, excluding FilterEmpty for non-nullable columns.

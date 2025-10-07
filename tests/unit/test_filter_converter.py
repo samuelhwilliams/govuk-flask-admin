@@ -217,8 +217,10 @@ class TestGovukFilterConverter:
         assert sqla_filters.DateNotEqualFilter in filter_types
         assert sqla_filters.DateGreaterFilter in filter_types
         assert sqla_filters.DateSmallerFilter in filter_types
-        assert sqla_filters.DateBetweenFilter in filter_types
-        assert sqla_filters.DateNotBetweenFilter in filter_types
+
+        # Should NOT have between filters (removed from GovukFilterConverter)
+        assert sqla_filters.DateBetweenFilter not in filter_types
+        assert sqla_filters.DateNotBetweenFilter not in filter_types
 
         # Should NOT have empty filter for non-nullable column
         assert sqla_filters.FilterEmpty not in filter_types
@@ -237,8 +239,10 @@ class TestGovukFilterConverter:
         assert sqla_filters.DateTimeNotEqualFilter in filter_types
         assert sqla_filters.DateTimeGreaterFilter in filter_types
         assert sqla_filters.DateTimeSmallerFilter in filter_types
-        assert sqla_filters.DateTimeBetweenFilter in filter_types
-        assert sqla_filters.DateTimeNotBetweenFilter in filter_types
+
+        # Should NOT have between filters (removed from GovukFilterConverter)
+        assert sqla_filters.DateTimeBetweenFilter not in filter_types
+        assert sqla_filters.DateTimeNotBetweenFilter not in filter_types
 
         # Should NOT have empty filter for non-nullable column
         assert sqla_filters.FilterEmpty not in filter_types
