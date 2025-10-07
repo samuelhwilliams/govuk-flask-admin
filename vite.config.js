@@ -35,6 +35,10 @@ export default defineConfig({
         {
           src: "node_modules/govuk-frontend/dist/govuk/assets/*",
           dest: "./assets",
+        },
+        {
+          src: "node_modules/@ministryofjustice/frontend/moj/assets/*",
+          dest: "./assets",
         }
       ],
     }),

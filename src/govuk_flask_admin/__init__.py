@@ -153,12 +153,24 @@ class GovukFlaskAdmin:
                 endpoint="govuk_flask_admin.static",
             )(self.static)
 
+            # Also serve assets at /assets/ for hardcoded paths in CSS
+            app.route(
+                "/assets/<path:filename>",
+                endpoint="govuk_flask_admin.assets",
+            )(self.static_assets)
+
         else:
             app.route(
                 "/_govuk_flask_admin/<path:filename>",
                 endpoint="govuk_flask_admin.static",
                 host="<govuk_flask_admin_host>",
             )(self.static)
+
+            app.route(
+                "/assets/<path:filename>",
+                endpoint="govuk_flask_admin.assets",
+                host="<govuk_flask_admin_host>",
+            )(self.static_assets)
 
             @app.url_defaults
             def inject_admin_routes_host_if_required(
@@ -192,6 +204,12 @@ class GovukFlaskAdmin:
         self.__setup_static_routes(app)
 
     def static(self, filename):
+        """Serve main CSS/JS assets from dist/assets/."""
+        dist = str(ROOT_DIR / "assets" / "dist" / "assets")
+        return send_from_directory(dist, filename, max_age=60 * 60 * 24 * 7 * 52)
+
+    def static_assets(self, filename):
+        """Serve assets from /assets/ path (for hardcoded CSS paths)."""
         dist = str(ROOT_DIR / "assets" / "dist" / "assets")
         return send_from_directory(dist, filename, max_age=60 * 60 * 24 * 7 * 52)
 
