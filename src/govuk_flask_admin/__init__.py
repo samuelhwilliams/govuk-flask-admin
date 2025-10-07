@@ -290,6 +290,37 @@ class GovukAdminModelConverter(AdminModelConverter):
     #     return field
 
 
+# Custom filter classes with more intuitive labels for date/time comparisons
+class DateAfterFilter(sqla_filters.DateGreaterFilter):
+    def operation(self):
+        return "after"
+
+
+class DateBeforeFilter(sqla_filters.DateSmallerFilter):
+    def operation(self):
+        return "before"
+
+
+class DateTimeAfterFilter(sqla_filters.DateTimeGreaterFilter):
+    def operation(self):
+        return "after"
+
+
+class DateTimeBeforeFilter(sqla_filters.DateTimeSmallerFilter):
+    def operation(self):
+        return "before"
+
+
+class TimeAfterFilter(sqla_filters.TimeGreaterFilter):
+    def operation(self):
+        return "after"
+
+
+class TimeBeforeFilter(sqla_filters.TimeSmallerFilter):
+    def operation(self):
+        return "before"
+
+
 class GovukFilterConverter(sqla_filters.FilterConverter):
     """
     Custom filter converter for GOV.UK Flask Admin.
@@ -297,6 +328,7 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
     Customizations:
     - Removes "in list" and "not in list" filters from all column types
     - Automatically excludes FilterEmpty from non-nullable columns
+    - Uses "before" and "after" labels for date/time comparison filters
     """
 
     # Override filter tuples to exclude InList/NotInList filters globally
@@ -351,8 +383,8 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
     date_filters = (
         sqla_filters.DateEqualFilter,
         sqla_filters.DateNotEqualFilter,
-        sqla_filters.DateGreaterFilter,
-        sqla_filters.DateSmallerFilter,
+        DateAfterFilter,  # Custom: "after" instead of "greater than"
+        DateBeforeFilter,  # Custom: "before" instead of "smaller than"
         sqla_filters.FilterEmpty,
         # Removed: DateBetweenFilter, DateNotBetweenFilter
     )
@@ -360,8 +392,8 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
     datetime_filters = (
         sqla_filters.DateTimeEqualFilter,
         sqla_filters.DateTimeNotEqualFilter,
-        sqla_filters.DateTimeGreaterFilter,
-        sqla_filters.DateTimeSmallerFilter,
+        DateTimeAfterFilter,  # Custom: "after" instead of "greater than"
+        DateTimeBeforeFilter,  # Custom: "before" instead of "smaller than"
         sqla_filters.FilterEmpty,
         # Removed: DateTimeBetweenFilter, DateTimeNotBetweenFilter
     )
@@ -369,8 +401,8 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
     time_filters = (
         sqla_filters.TimeEqualFilter,
         sqla_filters.TimeNotEqualFilter,
-        sqla_filters.TimeGreaterFilter,
-        sqla_filters.TimeSmallerFilter,
+        TimeAfterFilter,  # Custom: "after" instead of "greater than"
+        TimeBeforeFilter,  # Custom: "before" instead of "smaller than"
         sqla_filters.FilterEmpty,
         # Removed: TimeBetweenFilter, TimeNotBetweenFilter
     )
