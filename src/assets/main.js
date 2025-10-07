@@ -8,5 +8,11 @@ initAllMOJ();
 // Initialize FilterToggleButton separately (not included in initAll)
 const filterElements = document.querySelectorAll('[data-module="moj-filter"]');
 filterElements.forEach(element => {
+  // Prevent scroll when filter panel is focused by overriding the focus method
+  const originalFocus = element.focus;
+  element.focus = function() {
+    originalFocus.call(this, { preventScroll: true });
+  };
+
   new FilterToggleButton(element);
 });
