@@ -316,7 +316,7 @@
                            value="{{ get_pk_value(row) }}"
                            {% if get_pk_value(row)|string in request.args.getlist('rowid') %}checked{% endif %}
                            aria-label="Select row {{ loop.index }}">
-                    <label class="govuk-label govuk-checkboxes__label"
+                    <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0"
                            for="row-{{ get_pk_value(row) }}">
                       <span class="govuk-visually-hidden">Select</span>
                     </label>
