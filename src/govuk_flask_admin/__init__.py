@@ -267,6 +267,17 @@ class GovukAdminModelConverter(AdminModelConverter):
 
         return SelectField(**field_args)
 
+    def _convert_relation(self, name, prop, property_is_association_proxy, kwargs):
+        """Override to add GOV.UK Select widget to relationship fields."""
+        # Call parent to get the QuerySelectField
+        field = super()._convert_relation(name, prop, property_is_association_proxy, kwargs)
+
+        # Add GOV.UK Select widget if field was created
+        if field is not None and hasattr(field, 'kwargs'):
+            field.kwargs['widget'] = GovSelect()
+
+        return field
+
     # TODO: WIP finish fixing up error messages from wtforms
     # def convert(self, model, mapper, name, prop, field_args, hidden_pk):
     #     field = super().convert(model, mapper, name, prop, field_args, hidden_pk)
