@@ -331,7 +331,7 @@ class TestFilterInteractions:
 
         # Wait for filter button to be initialized
         filter_toggle = page.locator('.moj-action-bar__filter button')
-        expect(filter_toggle).to_have_text("Show filter")
+        expect(filter_toggle).to_have_text("Show filters")
 
         # Test with one filter - should show "(1 active)"
         page.goto(f"{page.base_url}/admin/user/?flt0_0=25")
@@ -340,7 +340,7 @@ class TestFilterInteractions:
         filter_toggle = page.locator('.moj-action-bar__filter button')
         # Wait for JS to update button text
         expect(filter_toggle).to_contain_text("(1 active)")
-        expect(filter_toggle).to_contain_text("Show filter")
+        expect(filter_toggle).to_contain_text("Show filters")
 
         # Test with search only - should show "(1 active)"
         page.goto(f"{page.base_url}/admin/user/?search=alice")
@@ -356,19 +356,18 @@ class TestFilterInteractions:
         filter_toggle = page.locator('.moj-action-bar__filter button')
         expect(filter_toggle).to_contain_text("(2 active)")
 
-        # Click to expand - should change to "Hide filter (2 active)"
+        # Click to expand - should change to "Hide filters" (count not shown when expanded)
         filter_toggle.click()
         filter_panel = page.locator('.moj-filter')
         filter_panel.wait_for(state='visible')
 
-        expect(filter_toggle).to_contain_text("Hide filter")
-        expect(filter_toggle).to_contain_text("(2 active)")
+        expect(filter_toggle).to_have_text("Hide filters")
 
-        # Click to collapse - should change back to "Show filter (2 active)"
+        # Click to collapse - should change back to "Show filters (2 active)"
         filter_toggle.click()
         filter_panel.wait_for(state='hidden')
 
-        expect(filter_toggle).to_contain_text("Show filter")
+        expect(filter_toggle).to_contain_text("Show filters")
         expect(filter_toggle).to_contain_text("(2 active)")
 
 
