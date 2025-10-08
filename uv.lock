@@ -362,7 +362,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "email-validator", specifier = ">=2.3.0" },
+    { name = "email-validator", specifier = ">=2.0.0" },
     { name = "flask", specifier = ">=3" },
     { name = "flask-admin", git = "https://github.com/flask-admin/flask-admin?branch=master" },
     { name = "govuk-frontend-jinja", specifier = "==3.8.0" },
