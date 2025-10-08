@@ -20,8 +20,11 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        api: "modern",
-        importers: [new NodePackageImporter()],
+        loadPaths: [
+          '.',
+          'node_modules/@ministryofjustice/frontend',
+          'node_modules/govuk-frontend/dist',
+        ],
         silenceDeprecations: [
           "color-functions",
           "global-builtin",
