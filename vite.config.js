@@ -1,5 +1,6 @@
 import path from "node:path"
 import { viteStaticCopy } from "vite-plugin-static-copy"
+import { NodePackageImporter } from "sass-embedded"
 
 import { defineConfig } from "vite"
 
@@ -19,13 +20,14 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
+        api: "modern",
+        importers: [new NodePackageImporter()],
         silenceDeprecations: [
-          "mixed-decls",
+          "color-functions",
           "global-builtin",
           "slash-div",
           "import",
         ],
-        includePaths: [path.join(__dirname, "node_modules")],
       },
     },
   },

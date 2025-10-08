@@ -1,16 +1,14 @@
-// ideally we wouldn't use a relative import here
-// didn't want to fight the config at the time
-$govuk-new-organisation-colours: true;
-$govuk-assets-path: "assets/";
-$govuk-brand-colour: #00625e;
-$govuk-page-width: 1920px;
+@use "pkg:govuk-frontend/dist/govuk" with (
+  $govuk-new-organisation-colours: true,
+  $govuk-assets-path: "assets/",
+  $govuk-brand-colour: #00625e,
+  $govuk-page-width: 1920px
+);
+@use "@ministryofjustice/frontend/moj/moj-frontend.min.css";
+@use "pkg:accessible-autocomplete";
 
-@import "../../node_modules/govuk-frontend/dist/govuk";
-@import "../../node_modules/@ministryofjustice/frontend/moj/moj-frontend.min.css";
-@import "../../node_modules/accessible-autocomplete";
-
-@import 'components/sort-buttons';
-@import 'components/filters';
+@use 'components/sort-buttons';
+@use 'components/filters';
 
 // Fix button alignment in MOJ action bar
 // MOJ Frontend sets vertical-align: initial but GOV.UK's .govuk-button sets vertical-align: top
@@ -36,16 +34,16 @@ $govuk-page-width: 1920px;
 }
 
 .gfa-table__header--checkbox {
-  @include govuk-responsive-padding($direction: "top", $responsive-spacing-point: 0);
+  @include govuk.govuk-responsive-padding($direction: "top", $responsive-spacing-point: 0);
   width: 50px;
 }
 
 .gfa-table__header--hint {
-  @include govuk-font-size($size: 16);
-  @include govuk-typography-weight-regular();
-  @include govuk-responsive-margin($direction: "top", $responsive-spacing-point: 1);
-  @include govuk-responsive-margin($direction: "bottom", $responsive-spacing-point: 0);
-  color: $govuk-secondary-text-colour;
+  @include govuk.govuk-font-size($size: 16);
+  @include govuk.govuk-typography-weight-regular();
+  @include govuk.govuk-responsive-margin($direction: "top", $responsive-spacing-point: 1);
+  @include govuk.govuk-responsive-margin($direction: "bottom", $responsive-spacing-point: 0);
+  color: govuk.$govuk-secondary-text-colour;
 
   display: block;
 }
