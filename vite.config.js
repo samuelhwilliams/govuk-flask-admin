@@ -13,7 +13,16 @@ export default defineConfig({
       external: [
         /assets\/fonts\/.*\.(woff|woff2)$/,
         /assets\/images\/.*\.svg$/,
+        /images\/.*\.svg$/,
       ],
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && /\.(woff|woff2)$/.test(assetInfo.name)) {
+            return 'assets/[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        }
+      }
     },
     emptyOutDir: true,
   },
