@@ -1,6 +1,7 @@
 import glob
 import inspect
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from textwrap import dedent
 import typing as t
@@ -302,14 +303,61 @@ class DateBeforeFilter(sqla_filters.DateSmallerFilter):
         return "before"
 
 
+class DateTimeEqualFilter(sqla_filters.DateTimeEqualFilter):
+    def operation(self):
+        return "equals"
+
+    def apply(self, query, value, alias=None):
+        """Apply filter with second-level precision support.
+
+        If the input datetime has no microseconds, treat it as second-level precision
+        and match all datetimes within that second (>= value and < value + 1 second).
+        """
+        column = self.get_column(alias)
+
+        # If value has no microseconds, it's second-level precision
+        # Match all records within that second
+        if isinstance(value, datetime) and value.microsecond == 0:
+            end_of_second = value + timedelta(seconds=1)
+            return query.filter(column >= value).filter(column < end_of_second)
+
+        # Otherwise, exact match
+        return query.filter(column == value)
+
+
 class DateTimeAfterFilter(sqla_filters.DateTimeGreaterFilter):
     def operation(self):
         return "after"
+
+    def apply(self, query, value, alias=None):
+        """Apply filter with second-level precision support.
+
+        If the input datetime has no microseconds, treat it as the start of that second
+        and filter for datetimes after that second (>= input + 1 second).
+        """
+        column = self.get_column(alias)
+
+        # If value has no microseconds, it's second-level precision
+        # We want to find records after this second, so >= value + 1 second
+        if isinstance(value, datetime) and value.microsecond == 0:
+            value = value + timedelta(seconds=1)
+            return query.filter(column >= value)
+
+        return query.filter(column > value)
 
 
 class DateTimeBeforeFilter(sqla_filters.DateTimeSmallerFilter):
     def operation(self):
         return "before"
+
+    def apply(self, query, value, alias=None):
+        """Apply filter with second-level precision support.
+
+        If the input datetime has no microseconds, treat it as the start of that second
+        and filter for datetimes before that second (< input).
+        """
+        column = self.get_column(alias)
+        return query.filter(column < value)
 
 
 class TimeAfterFilter(sqla_filters.TimeGreaterFilter):
@@ -391,10 +439,10 @@ class GovukFilterConverter(sqla_filters.FilterConverter):
     )
 
     datetime_filters = (
-        sqla_filters.DateTimeEqualFilter,
+        DateTimeEqualFilter,  # Custom: handles second-level precision
         sqla_filters.DateTimeNotEqualFilter,
-        DateTimeAfterFilter,  # Custom: "after" instead of "greater than"
-        DateTimeBeforeFilter,  # Custom: "before" instead of "smaller than"
+        DateTimeAfterFilter,  # Custom: "after" instead of "greater than" + second-level precision
+        DateTimeBeforeFilter,  # Custom: "before" instead of "smaller than" + second-level precision
         sqla_filters.FilterEmpty,
         # Removed: DateTimeBetweenFilter, DateTimeNotBetweenFilter
     )
@@ -515,8 +563,10 @@ class GovukModelView(ModelView):
     filter_converter = GovukFilterConverter()
 
     # Format enum values to show their .value (lowercase) instead of .name (uppercase)
+    # Format datetime values without microseconds for better readability
     column_type_formatters = {
-        Enum: lambda view, value, name: value.value if isinstance(value, Enum) else value
+        Enum: lambda view, value, name: value.value if isinstance(value, Enum) else value,
+        datetime: lambda view, value, name: value.strftime('%Y-%m-%d %H:%M:%S') if value else ''
     }
 
     def __init__(

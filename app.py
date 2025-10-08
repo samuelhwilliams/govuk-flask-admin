@@ -42,6 +42,7 @@ class User(Base):
     favourite_colour: Mapped[FavouriteColour]
     account: Mapped[Optional["Account"]] = relationship(back_populates="user")
     created_at: Mapped[datetime.date]
+    last_logged_in_at: Mapped[Optional[datetime.datetime]]
 
 
 class Account(Base):
@@ -60,7 +61,7 @@ class UserModelView(GovukModelView):
     form_args = {"email": {"validators": [Email()]}}
 
     # Enable filtering on multiple columns
-    column_filters = ["age", "job", "email", "created_at", "favourite_colour"]
+    column_filters = ["age", "job", "email", "created_at", "favourite_colour", "last_logged_in_at"]
 
     # Enable search
     column_searchable_list = ["email", "name"]
@@ -73,7 +74,8 @@ class UserModelView(GovukModelView):
     column_descriptions = {
         "age": "User's age in years",
         "email": "Email address for contacting the user",
-        "created_at": "Date the user account was created"
+        "created_at": "Date the user account was created",
+        "last_logged_in_at": "Date and time of the user's last login"
     }
 
 
@@ -135,14 +137,22 @@ def seed_database(app, db, num_users=8):
         num_users: Number of sample users to create
     """
     with app.app_context():
+        fake = faker.Faker()
         for _ in range(num_users):
+            # Randomly set last_logged_in_at for some users
+            last_login = None
+            if random.random() > 0.3:  # 70% of users have logged in
+                days_ago = random.randint(0, 365)
+                last_login = datetime.datetime.now() - datetime.timedelta(days=days_ago)
+
             u = User(
-                email=faker.Faker().email(),
+                email=fake.email(),
                 created_at=datetime.date.today(),
-                name=faker.Faker().name(),
+                name=fake.name(),
                 age=random.randint(18, 100),
                 job="blah blah",
                 favourite_colour=random.choice(list(FavouriteColour)),
+                last_logged_in_at=last_login,
             )
             db.session.add(u)
             db.session.flush()

@@ -239,20 +239,20 @@ class TestGovukFilterConverter:
     def test_datetime_filters_exclude_empty_for_non_nullable(self, converter):
         """Test that non-nullable datetime columns don't get FilterEmpty."""
         from sqlalchemy import DateTime
-        from govuk_flask_admin import DateTimeAfterFilter, DateTimeBeforeFilter
+        from govuk_flask_admin import DateTimeEqualFilter, DateTimeAfterFilter, DateTimeBeforeFilter
         column = Column('test_datetime', DateTime, nullable=False)
 
         filters = converter.conv_datetime(column, 'Test DateTime')
 
         filter_types = [type(f) for f in filters]
 
-        # Should have standard datetime filters
-        assert sqla_filters.DateTimeEqualFilter in filter_types
+        # Should have custom datetime filters
+        assert DateTimeEqualFilter in filter_types  # Custom filter with second-level precision
         assert sqla_filters.DateTimeNotEqualFilter in filter_types
         assert DateTimeAfterFilter in filter_types  # Custom filter with "after" label
         assert DateTimeBeforeFilter in filter_types  # Custom filter with "before" label
 
-        # Should NOT have the original greater/smaller filters
+        # Should NOT have the original filters
         assert sqla_filters.DateTimeGreaterFilter not in filter_types
         assert sqla_filters.DateTimeSmallerFilter not in filter_types
 
