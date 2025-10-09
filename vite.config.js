@@ -6,7 +6,7 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   build: {
-    outDir: path.join(__dirname, "src", "assets", "dist"),
+    outDir: path.join(__dirname, "src", "govuk_flask_admin", "static", "dist"),
     manifest: "manifest.json",
     rollupOptions: {
       input: ["src/assets/main.scss", "src/assets/main.js"],

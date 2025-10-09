@@ -1,5 +1,6 @@
 import glob
 import inspect
+import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -46,7 +47,7 @@ except ImportError:
     pass
 
 
-ROOT_DIR = Path(__file__).parent.parent
+ROOT_DIR = Path(__file__).parent
 
 
 @dataclass
@@ -110,11 +111,13 @@ def govuk_pagination_params_builder(page_zero_indexed, total_pages, url_generato
 
 
 def govuk_flask_admin_assets_tags():
-    manifest_path = ROOT_DIR / "assets" / "dist" / "assets"
-    print(manifest_path)
+    manifest_file = ROOT_DIR / "static" / "dist" / "manifest.json"
 
-    js_file = Path(glob.glob(f"{manifest_path}/*.js")[0]).name
-    css_file = Path(glob.glob(f"{manifest_path}/*.css")[0]).name
+    with open(manifest_file) as f:
+        manifest = json.load(f)
+
+    js_file = Path(manifest["src/assets/main.js"]["file"]).name
+    css_file = Path(manifest["src/assets/main.scss"]["file"]).name
 
     js_file_url = url_for("govuk_flask_admin.static", filename=js_file)
     css_file_url = url_for("govuk_flask_admin.static", filename=css_file)
@@ -193,8 +196,8 @@ class GovukFlaskAdmin:
         self.__setup_static_routes(app)
 
     def static(self, filename):
-        """Serve main CSS/JS assets from dist/assets/."""
-        dist = str(ROOT_DIR / "assets" / "dist" / "assets")
+        """Serve main CSS/JS assets from static/dist/assets/."""
+        dist = str(ROOT_DIR / "static" / "dist" / "assets")
         return send_from_directory(dist, filename, max_age=60 * 60 * 24 * 7 * 52)
 
 
