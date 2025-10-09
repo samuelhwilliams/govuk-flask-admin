@@ -1,6 +1,6 @@
 [project]
 name = "govuk-flask-admin"
-version = "0.1.1"
+version = "0.2.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,19 +16,18 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+ignore-vcs = false
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/govuk_flask_admin"]
-artifacts = [
-    "src/govuk_flask_admin/static/**/*",
-    "src/govuk_flask_admin/templates/**/*",
-]
+force-include = { "src/govuk_flask_admin/static" = "govuk_flask_admin/static" }
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/govuk_flask_admin/**/*.py",
-    "src/govuk_flask_admin/static/**/*",
-    "src/govuk_flask_admin/templates/**/*",
+    "src/",
 ]
+force-include = { "src/govuk_flask_admin/static" = "src/govuk_flask_admin/static" }
 
 [tool.uv]
 dev-dependencies = [
