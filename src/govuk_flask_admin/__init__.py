@@ -111,23 +111,36 @@ def govuk_pagination_params_builder(page_zero_indexed, total_pages, url_generato
     return component_params
 
 
-def govuk_flask_admin_assets_tags():
+def govuk_flask_admin_include_css():
+    manifest_file = ROOT_DIR / "static" / "dist" / "manifest.json"
+
+    with open(manifest_file) as f:
+        manifest = json.load(f)
+
+    css_file = Path(manifest["src/assets/main.scss"]["file"]).name
+    css_file_url = url_for("govuk_flask_admin.static", filename=css_file)
+
+    return dedent(
+        f"""
+            <!-- FLASK_VITE_HEADER -->
+            <link rel="stylesheet" href="{css_file_url}"></link>
+        """
+    ).strip()
+
+
+def govuk_flask_admin_include_js():
     manifest_file = ROOT_DIR / "static" / "dist" / "manifest.json"
 
     with open(manifest_file) as f:
         manifest = json.load(f)
 
     js_file = Path(manifest["src/assets/main.js"]["file"]).name
-    css_file = Path(manifest["src/assets/main.scss"]["file"]).name
-
     js_file_url = url_for("govuk_flask_admin.static", filename=js_file)
-    css_file_url = url_for("govuk_flask_admin.static", filename=css_file)
 
     return dedent(
         f"""
             <!-- FLASK_VITE_HEADER -->
             <script type="module" src="{js_file_url}"></script>
-            <link rel="stylesheet" href="{css_file_url}"></link>
         """
     ).strip()
 
@@ -144,8 +157,11 @@ class GovukFlaskAdmin:
         def inject_govuk_flask_admin_globals():
             return {"govuk_flask_admin_service_name": self.service_name}
 
-        app.template_global("govuk_flask_admin_assets_tags")(
-            govuk_flask_admin_assets_tags
+        app.template_global("govuk_flask_admin_include_css")(
+            govuk_flask_admin_include_css
+        )
+        app.template_global("govuk_flask_admin_include_js")(
+            govuk_flask_admin_include_js
         )
         app.template_global("govuk_pagination_data_builder")(
             govuk_pagination_params_builder

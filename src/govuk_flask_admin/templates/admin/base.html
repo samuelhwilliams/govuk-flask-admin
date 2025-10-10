@@ -8,7 +8,7 @@
 {% set govukRebrand = true %}
 
 {% block head %}
-{{ govuk_flask_admin_assets_tags() | safe }}
+{{ govuk_flask_admin_include_css() | safe }}
 {% endblock head %}
 
 {% block header %}
@@ -38,6 +38,7 @@
 {% endblock %}
 
 {% block bodyEnd %}
+  {{ govuk_flask_admin_include_js() | safe }}
   {% if admin_view.extra_js %}
       {% for js_url in admin_view.extra_js %}
           <script {{ admin_csp_nonce_attribute }} src="{{ js_url }}" type="text/javascript"></script>
