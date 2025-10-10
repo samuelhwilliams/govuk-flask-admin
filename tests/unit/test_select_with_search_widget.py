@@ -194,16 +194,28 @@ class TestGovSelectWithSearchWidget:
         field = DummyField(
             name="test",
             label="Test <script>alert('xss')</script>",
-            choices=[("1", "Option <b>1</b>")],
+            choices=[("1", "Option <b>1</b>"), ("<script>", "Dangerous <script>alert('xss')</script>")],
             data=[]
         )
 
         with test_app.app_context():
             result = widget(field)
 
-        # HTML should be escaped
-        assert '&lt;script&gt;' in result or '<script>' not in result
-        assert '&lt;b&gt;' in result or '<b>1</b>' not in result or 'Option <b>1</b>' in result
+        # HTML in label should be escaped
+        assert '&lt;script&gt;' in result
+        assert '<script>' not in result
+        assert '&lt;b&gt;' in result
+
+        # HTML in option text should be escaped
+        assert 'Option &lt;b&gt;1&lt;/b&gt;' in result
+        assert 'Dangerous &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;' in result
+
+        # HTML in option value should be escaped
+        assert 'value="&lt;script&gt;"' in result
+
+        # Raw HTML should NOT be present
+        assert '<b>1</b>' not in result
+        assert "alert('xss')" not in result
 
     def test_map_gov_params_preserves_items(self, test_app):
         """Test that map_gov_params correctly saves items before parent processing."""

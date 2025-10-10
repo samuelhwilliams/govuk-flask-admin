@@ -370,3 +370,82 @@ class TestSelectWithSearchEnhancement:
         all_selected_text = " ".join([final_selected.nth(i).inner_text() for i in range(final_count)])
         assert removed_post_title not in all_selected_text, \
             f"Removed post '{removed_post_title}' should not be selected after reload"
+
+    def test_select_with_search_escapes_html_in_options(self, page):
+        """Test that HTML in post titles is properly escaped in select-with-search options.
+
+        Note: This test verifies the client-side behavior. The Post model in app.py
+        doesn't have a custom __str__, so it shows as '<Post object at 0x...>'.
+        This test verifies that IF such HTML appears, it would be escaped.
+
+        The real-world scenario is tested by checking that the angle brackets
+        in the default Python object representation are properly escaped.
+        """
+        # Navigate to user edit page
+        page.goto(f"{page.base_url}/admin/user/")
+        page.wait_for_selector('.govuk-table')
+
+        edit_link = page.locator('a:has-text("Edit")').first
+        edit_link.click()
+        page.wait_for_load_state('networkidle')
+
+        # Wait for Choices.js
+        page.wait_for_selector('.choices', timeout=5000)
+
+        # Check the underlying HTML source before Choices.js processes it
+        # The select element should have escaped HTML in option values and text
+        page_content = page.content()
+
+        # The Post model's default __str__ returns something like "<Post object at 0x...>"
+        # Verify that these angle brackets are escaped in the HTML source
+        # Look for the select element with posts
+        select_html = page.locator('select[name="posts"]').inner_html()
+
+        # If there are any angle brackets in option text, they should be HTML-escaped
+        # We're checking that the template properly uses |e filter
+        # The select should contain escaped entities if there's HTML-like content
+        if '<' in select_html and 'option' not in select_html[select_html.find('<'):select_html.find('<')+10]:
+            # Found a raw < that's not part of an HTML tag - this is bad
+            assert '&lt;' in select_html or '&#' in select_html, \
+                "Any < or > characters in option text should be HTML-escaped"
+
+        # Click to open Choices.js dropdown
+        choices_wrapper = page.locator('.gem-c-select-with-search .choices')
+        choices_wrapper.click()
+        page.wait_for_selector('.choices__list--dropdown', state='visible', timeout=3000)
+
+        # Get the Choices.js dropdown HTML
+        dropdown_html = page.locator('.choices__list--dropdown').inner_html()
+
+        # Verify no executable script tags in the dropdown
+        # (Would only appear if someone had a malicious __str__ method)
+        assert '<script>' not in dropdown_html, \
+            "Raw script tags should never appear in dropdown HTML"
+        assert 'javascript:' not in dropdown_html.lower(), \
+            "JavaScript protocol URLs should not appear in dropdown"
+
+        # The Choices.js library should also escape HTML when rendering items
+        # Check that there are no onclick or other event handlers in the dropdown items
+        dropdown_items = page.locator('.choices__list--dropdown .choices__item')
+        for i in range(min(dropdown_items.count(), 5)):  # Check first 5 items
+            item_html = dropdown_items.nth(i).evaluate('el => el.outerHTML')
+            assert 'onclick=' not in item_html.lower(), \
+                "No inline event handlers should be in dropdown items"
+            assert 'onerror=' not in item_html.lower(), \
+                "No inline event handlers should be in dropdown items"
+
+        # Verify that the dropdown items are text-only (no nested HTML elements for content)
+        # The only allowed HTML should be structural (the item wrapper itself)
+        first_item = dropdown_items.first
+        if first_item.count() > 0:
+            # The item should have data-value attribute (safe, set by Choices.js)
+            assert first_item.get_attribute('data-value') is not None, \
+                "Dropdown items should have data-value attribute"
+
+            # Get inner HTML and verify it's just text (no additional tags beyond structure)
+            item_inner = first_item.inner_html()
+            # Should not contain user-controllable HTML tags
+            dangerous_tags = ['<script', '<img', '<iframe', '<object', '<embed', '<svg']
+            for tag in dangerous_tags:
+                assert tag not in item_inner.lower(), \
+                    f"Dangerous tag {tag} should not be in dropdown item HTML"

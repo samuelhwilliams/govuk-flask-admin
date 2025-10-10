@@ -42,7 +42,7 @@ window.GOVUK.Modules = window.GOVUK.Modules || {}
     const ariaDescribedBy = this.module.getAttribute('aria-describedby') || ''
 
     this.choices = new Choices(this.module, {
-      allowHTML: true,
+      allowHTML: false,
       searchPlaceholderValue: 'Search in list',
       shouldSort: false,
       itemSelectText: '',

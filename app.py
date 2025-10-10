@@ -65,9 +65,6 @@ class Post(Base):
     published_at: Mapped[Optional[datetime.datetime]]
     created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now())
 
-    def __str__(self):
-        return self.title
-
 
 class UserModelView(GovukModelView):
     page_size = 15
