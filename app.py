@@ -41,6 +41,7 @@ class User(Base):
     job: Mapped[str]
     favourite_colour: Mapped[FavouriteColour]
     account: Mapped[Optional["Account"]] = relationship(back_populates="user")
+    posts: Mapped[list["Post"]] = relationship(back_populates="author", cascade="all, delete-orphan")
     created_at: Mapped[datetime.date]
     last_logged_in_at: Mapped[Optional[datetime.datetime]]
 
@@ -51,6 +52,18 @@ class Account(Base):
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id))
     user: Mapped[User] = relationship(back_populates="account")
+
+
+class Post(Base):
+    __tablename__ = "post"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str]
+    content: Mapped[str]
+    author_id: Mapped[int] = mapped_column(ForeignKey(User.id))
+    author: Mapped[User] = relationship(back_populates="posts")
+    published_at: Mapped[Optional[datetime.datetime]]
+    created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now())
 
 
 class UserModelView(GovukModelView):
@@ -76,6 +89,32 @@ class UserModelView(GovukModelView):
         "email": "Email address for contacting the user",
         "created_at": "Date the user account was created",
         "last_logged_in_at": "Date and time of the user's last login"
+    }
+
+
+class PostModelView(GovukModelView):
+    page_size = 20
+    can_set_page_size = True
+
+    # Enable filtering
+    column_filters = ["author", "published_at", "created_at"]
+
+    # Enable search
+    column_searchable_list = ["title", "content"]
+
+    # Exclude content from list view for brevity
+    column_list = ["id", "title", "author", "published_at", "created_at"]
+
+    # Add column descriptions
+    column_descriptions = {
+        "author": "The user who wrote this post",
+        "published_at": "Date and time the post was published (empty for drafts)",
+        "created_at": "Date and time the post was created"
+    }
+
+    # Format the author relationship nicely
+    column_formatters = {
+        "author": lambda v, c, m, p: m.author.name if m.author else ""
     }
 
 
@@ -117,6 +156,7 @@ def _create_app(config_overrides=None):
     with app.app_context():
         Base.metadata.create_all(db.engine)
         admin.add_view(UserModelView(User, db.session, category="Models"))
+        admin.add_view(PostModelView(Post, db.session, category="Models"))
         admin.add_view(GovukModelView(Account, db.session, category="Models"))
 
     seed_database(app, db)
@@ -156,7 +196,27 @@ def seed_database(app, db, num_users=8):
             )
             db.session.add(u)
             db.session.flush()
+
+            # Create account for user
             a = Account(id=str(uuid.uuid4()), user_id=u.id)
             db.session.add(a)
+
+            # Create 2-5 posts for each user
+            num_posts = random.randint(2, 5)
+            for _ in range(num_posts):
+                # Some posts are published, some are drafts
+                published = None
+                if random.random() > 0.3:  # 70% of posts are published
+                    days_ago = random.randint(0, 180)
+                    published = datetime.datetime.now() - datetime.timedelta(days=days_ago)
+
+                post = Post(
+                    title=fake.sentence(nb_words=6).rstrip('.'),
+                    content=fake.paragraph(nb_sentences=5),
+                    author_id=u.id,
+                    published_at=published,
+                    created_at=datetime.datetime.now() - datetime.timedelta(days=random.randint(0, 365))
+                )
+                db.session.add(post)
 
         db.session.commit()

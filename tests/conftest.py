@@ -4,7 +4,7 @@ import datetime
 import random
 
 # Import from app.py instead of redefining
-from app import create_app, User, Account, Base, FavouriteColour, _create_app
+from app import create_app, User, Account, Post, Base, FavouriteColour, _create_app
 
 # Store app components at module level for session scope
 _app_components = None
@@ -70,9 +70,29 @@ def sample_users(db, app):
             users.append(user)
 
         db.session.commit()
+
+        # Create posts for each user
+        for i, user in enumerate(users):
+            # Create 2-3 posts per user
+            for j in range(2 + (i % 2)):
+                published = None
+                if j > 0:  # First post is draft, others are published
+                    published = datetime.datetime(2024, 1, 1, 12, 0, 0) + datetime.timedelta(days=i * 3 + j)
+
+                post = Post(
+                    title=f"Post {j + 1} by User {i}",
+                    content=f"This is the content of post {j + 1} written by {user.name}.",
+                    author_id=user.id,
+                    published_at=published,
+                    created_at=datetime.datetime(2024, 1, 1, 10, 0, 0) + datetime.timedelta(days=i * 3 + j)
+                )
+                db.session.add(post)
+
+        db.session.commit()
         yield users
 
         # Cleanup
+        db.session.query(Post).delete()
         db.session.query(Account).delete()
         db.session.query(User).delete()
         db.session.commit()
