@@ -336,11 +336,21 @@
             {% for c, name in list_columns %}
               <td class="govuk-table__cell col-{{c}}">
                 {% if loop.index == 1 %}
-                  <a class="govuk-link govuk-link--no-visited-state"
-                     href="{{ get_url('.edit_view', id=get_pk_value(row), url=return_url) }}">
+                  {% if admin_view.can_edit %}
+                    <a class="govuk-link govuk-link--no-visited-state"
+                       href="{{ get_url('.edit_view', id=get_pk_value(row), url=return_url) }}">
+                      {{ get_value(row, c) }}
+                      <span class="govuk-visually-hidden"> (view and edit)</span>
+                    </a>
+                  {% elif admin_view.can_view_details %}
+                    <a class="govuk-link govuk-link--no-visited-state"
+                       href="{{ get_url('.details_view', id=get_pk_value(row), url=return_url) }}">
+                      {{ get_value(row, c) }}
+                      <span class="govuk-visually-hidden"> (view details)</span>
+                    </a>
+                  {% else %}
                     {{ get_value(row, c) }}
-                    <span class="govuk-visually-hidden"> (view and edit)</span>
-                  </a>
+                  {% endif %}
                 {% else %}
                   {{ get_value(row, c) }}
                 {% endif %}

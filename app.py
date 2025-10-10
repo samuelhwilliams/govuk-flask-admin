@@ -98,6 +98,8 @@ class UserModelView(GovukModelView):
 class PostModelView(GovukModelView):
     page_size = 20
     can_set_page_size = True
+    can_edit = False
+    can_view_details = True
 
     # Enable filtering
     column_filters = ["author", "published_at", "created_at"]
@@ -213,9 +215,14 @@ def seed_database(app, db, num_users=8):
                     days_ago = random.randint(0, 180)
                     published = datetime.datetime.now() - datetime.timedelta(days=days_ago)
 
+                # Generate multiline content with 3-5 paragraphs separated by newlines
+                num_paragraphs = random.randint(3, 5)
+                content_paragraphs = [fake.paragraph(nb_sentences=random.randint(2, 4)) for _ in range(num_paragraphs)]
+                multiline_content = "\n\n".join(content_paragraphs)
+
                 post = Post(
                     title=fake.sentence(nb_words=6).rstrip('.'),
-                    content=fake.paragraph(nb_sentences=5),
+                    content=multiline_content,
                     author_id=u.id,
                     published_at=published,
                     created_at=datetime.datetime.now() - datetime.timedelta(days=random.randint(0, 365))

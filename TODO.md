@@ -10,7 +10,6 @@
 - Move the show/hide filter + action menu and results # + pagination + # per page outside of the scroll container. 
   If possible?
 - fix filter tags - asset loading/content shown
-- fix links from list view to model view page with `can_edit=false` (currently goes to edit page which redirects back to list view)
 
 ## Other
 
