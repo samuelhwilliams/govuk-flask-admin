@@ -15,6 +15,7 @@ from flask_admin.contrib.sqla import filters as sqla_filters
 from flask_admin.theme import Theme
 from flask_admin.model.form import converts
 from govuk_frontend_wtf.wtforms_widgets import GovTextInput, GovDateInput, GovSelect
+from govuk_flask_admin.widgets import GovSelectWithSearch
 from sqlalchemy.orm import ColumnProperty
 from wtforms import validators, SelectField
 from enum import Enum
@@ -274,14 +275,20 @@ class GovukAdminModelConverter(AdminModelConverter):
 
     def _convert_relation(self, name, prop, property_is_association_proxy, kwargs):
         """Override to add GOV.UK Select widget to relationship fields."""
-        # Call parent to get the QuerySelectField
-        field = super()._convert_relation(name, prop, property_is_association_proxy, kwargs)
+        # Determine if this is a one-to-many or many-to-many relationship (multiple=True)
+        # by checking if the relationship has uselist=True
+        is_multiple = prop.uselist if hasattr(prop, 'uselist') else False
 
-        # Add GOV.UK Select widget if field was created
-        if field is not None and hasattr(field, 'kwargs'):
-            field.kwargs['widget'] = GovSelect()
+        # Add the appropriate widget to kwargs before field creation
+        if is_multiple:
+            # Use select-with-search for multi-select (supports search + multiple selection)
+            kwargs['widget'] = GovSelectWithSearch(multiple=True)
+        else:
+            # Use standard GovSelect for single select
+            kwargs['widget'] = GovSelect()
 
-        return field
+        # Call parent to create the field with our widget in kwargs
+        return super()._convert_relation(name, prop, property_is_association_proxy, kwargs)
 
     # TODO: WIP finish fixing up error messages from wtforms
     # def convert(self, model, mapper, name, prop, field_args, hidden_pk):

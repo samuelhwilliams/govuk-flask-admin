@@ -25,7 +25,7 @@ import sys
 sys.path.insert(0, '{sys.path[0]}')
 from app import _create_app
 
-app, admin, db = _create_app(config_overrides={{
+app, db, admin = _create_app(config_overrides={{
     'TESTING': True,
     'SQLALCHEMY_ENGINES': {{'default': 'sqlite:///:memory:'}},
 }})
